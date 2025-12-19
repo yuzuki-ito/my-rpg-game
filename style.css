@@ -410,3 +410,7 @@ h1 {
 .skill-node:hover::after {
   display: block;
 }
+
+.orange {
+  color: orange;
+}

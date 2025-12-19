@@ -30,6 +30,42 @@ const villagers = {
 	}
 };
 
+const questList = {
+	slimeHunt: {
+		id: "slimeHunt", // ← 追加
+		title: "スライム退治",
+		description: "スライムを5体倒そう！",
+		type: "kill", // ← 追加：討伐系
+		target: "slime", // ← 追加：対象の敵タイプ
+		goal: 5,
+		autoComplete: false,
+		reward: () => {
+			player.exp += 10;
+			// player.gold = (player.gold || 0) + 15;
+			player.potions += 2;
+			// updateLog("🎁 ポーション×2、経験値+10、ゴールド+15 を手に入れた！");
+			updateLog("🎁 ポーション×2、経験値+10 を手に入れた！");
+			updateStatus();
+		}
+	},
+	herbGathering: {
+		id: "herbGathering",
+		title: "薬草集め",
+		description: "草むらで薬草を7つ集めよう！",
+		type: "gather",
+		target: "herb",
+		goal: 7,
+		prerequisite: "slimeHunt",
+		autoComplete: false,
+		reward: () => {
+			player.maxHp += 10;
+			player.exp += 15;
+			updateLog("🎁 最大HP+10、経験値+15 を手に入れた！");
+			updateStatus();
+		}
+	}
+};
+
 let inBattle = false;
 let currentEnemy = null;
 let playerTurn = true;
@@ -56,33 +92,8 @@ const rarityColors = {
 	legendary: "#ef6c00"     // 濃いオレンジ
 };
 
-const questList = {
-	slimeHunt: {
-		id: "slimeHunt", // ← 追加
-		title: "スライム退治",
-		description: "スライムを3体倒そう！",
-		type: "kill", // ← 追加：討伐系
-		target: "slime", // ← 追加：対象の敵タイプ
-		goal: 3,
-		autoComplete: false,
-		reward: () => {
-			player.potions += 2;
-			updateLog("🎁 ポーション×2を手に入れた！");
-		}
-	},
-	// 追加クエストの例
-	herbGathering: {
-		title: "薬草集め",
-		description: "草むらで薬草を5つ集めよう！",
-		prerequisite: "slimeHunt", // ← 追加
-		goal: 5,
-		autoComplete: false,
-		reward: () => {
-			player.maxHp += 10;
-			updateLog("🎁 最大HPが10上がった！");
-		}
-	}
-};
+// 所持上限を設定
+const MAX_INVENTORY = 10; // ← 好きな数に調整してね！
 
 // スキルツリー定義
 const skillTree = {
@@ -90,51 +101,308 @@ const skillTree = {
 		name: "🔥 火の系統",
 		skills: [
 			{
-				id: "fire",
-				name: "ファイア",
+				id: "ember",
+				name: "エンバー",
 				requiredLevel: 1,
+				requires: null,
+				cost: 1,
+				mpCost: 3,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "小さな火の玉で敵単体を攻撃する",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.0 + player.level * 1.2 + Math.random() * 3);
+					return { type: "damage", value: damage, element: "fire" };
+				}
+			},
+			{
+				id: "flameLance",
+				name: "フレイムランス",
+				requiredLevel: 6,
+				requires: "ember",
+				cost: 2,
+				mpCost: 7,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "炎の槍で敵単体を貫く",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.6 + player.level * 2 + Math.random() * 5);
+					return { type: "damage", value: damage, element: "fire" };
+				}
+			},
+			{
+				id: "infernalEdge",
+				name: "インフェルナルエッジ",
+				requiredLevel: 13,
+				requires: "flameLance",
+				cost: 3,
+				mpCost: 12,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "灼熱の刃で敵単体に壊滅的なダメージを与える",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 2.2 + player.level * 3 + Math.random() * 8);
+					return { type: "damage", value: damage, element: "fire" };
+				}
+			}
+		]
+	},
+	water: {
+		name: "💧 水の系統",
+		skills: [
+			{
+				id: "aquaShot",
+				name: "アクアショット",
+				requiredLevel: 2,
+				requires: null,
+				cost: 1,
+				mpCost: 3,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "水の弾で敵単体を攻撃する",
+				ignoreDefense: false,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.0 + player.level * 1.2 + Math.random() * 3);
+					return { type: "damage", value: damage, element: "water" };
+				}
+			},
+			{
+				id: "streamLance",
+				name: "ストリームランス",
+				requiredLevel: 7,
+				requires: "aquaShot",
+				cost: 2,
+				mpCost: 7,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "水流の槍で敵単体を貫く",
+				ignoreDefense: false,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.5 + player.level * 2 + Math.random() * 5);
+					return { type: "damage", value: damage, element: "water" };
+				}
+			},
+			{
+				id: "aquaBurst",
+				name: "アクアバースト",
+				requiredLevel: 14,
+				requires: "streamLance",
+				cost: 3,
+				mpCost: 12,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "高圧の水流で敵単体に大ダメージを与える",
+				ignoreDefense: false,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 2.0 + player.level * 3 + Math.random() * 8);
+					return { type: "damage", value: damage, element: "water" };
+				}
+			}
+		]
+	},
+	wind: {
+		name: "🍃 風の系統",
+		skills: [
+			{
+				id: "windCutter",
+				name: "ウィンドカッター",
+				requiredLevel: 2,
 				requires: null,
 				cost: 1,
 				mpCost: 3,
 				learned: false,
 				canMiss: true,
 				targetType: "enemy",
-				description: "小さな火球で敵単体を攻撃する",
+				description: "鋭い風の刃で敵単体を切り裂く",
+				ignoreDefense: false,
+				scaling: "magic",
 				effect: () => {
-					const damage = 10 + Math.floor(Math.random() * 5);
-					return { type: "damage", value: damage, element: "fire" };
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.0 + player.level * 1.2 + Math.random() * 4);
+					return { type: "damage", value: damage, element: "wind" };
 				}
 			},
 			{
-				id: "fireball",
-				name: "ファイアボール",
-				requiredLevel: 5,
-				requires: "fire",
+				id: "galeThrust",
+				name: "ゲイルスラスト",
+				requiredLevel: 7,
+				requires: "windCutter",
 				cost: 2,
-				mpCost: 6,
+				mpCost: 7,
 				learned: false,
 				canMiss: true,
 				targetType: "enemy",
-				description: "大きな火球で敵単体を攻撃する",
+				description: "突風の一撃で敵単体に強力なダメージを与える",
+				ignoreDefense: false,
+				scaling: "magic",
 				effect: () => {
-					const damage = 12 + Math.floor(Math.random() * 6);
-					return { type: "damage", value: damage, element: "fire" };
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.5 + player.level * 2 + Math.random() * 6);
+					return { type: "damage", value: damage, element: "wind" };
 				}
 			},
 			{
-				id: "flameburst",
-				name: "フレイムバースト",
-				requiredLevel: 10,
-				requires: "fireball",
+				id: "skyRend",
+				name: "スカイレンド",
+				requiredLevel: 14,
+				requires: "galeThrust",
 				cost: 3,
-				mpCost: 9,
+				mpCost: 12,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "空を裂く風で敵単体に壊滅的なダメージを与える",
+				ignoreDefense: false,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 2.0 + player.level * 3 + Math.random() * 10);
+					return { type: "damage", value: damage, element: "wind" };
+				}
+			}
+		]
+	},
+	light: {
+		name: "🌟 光の系統",
+		skills: [
+			{
+				id: "lightArrow",
+				name: "ライトアロー",
+				requiredLevel: 3,
+				requires: null,
+				cost: 1,
+				mpCost: 4,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "光の矢で敵単体を貫く",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.0 + player.level * 1.5 + Math.random() * 4);
+					return { type: "damage", value: damage, element: "light" };
+				}
+			},
+			{
+				id: "radiantBlade",
+				name: "ラディアントブレード",
+				requiredLevel: 9,
+				requires: "lightArrow",
+				cost: 2,
+				mpCost: 8,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "まばゆい光の刃で敵単体を斬り裂く",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.6 + player.level * 2 + Math.random() * 6);
+					return { type: "damage", value: damage, element: "light" };
+				}
+			},
+			{
+				id: "divineStrike",
+				name: "ディバインストライク",
+				requiredLevel: 16,
+				requires: "radiantBlade",
+				cost: 3,
+				mpCost: 14,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "神聖な光で敵単体に壊滅的なダメージを与える",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 2.3 + player.level * 3 + Math.random() * 10);
+					return { type: "damage", value: damage, element: "light" };
+				}
+			}
+		]
+	},
+	dark: {
+		name: "🌑 闇の系統",
+		skills: [
+			{
+				id: "darkClaw",
+				name: "ダーククロー",
+				requiredLevel: 3,
+				requires: null,
+				cost: 1,
+				mpCost: 4,
 				learned: false,
 				canMiss: true,
 				targetType: "enemy",
-				description: "爆発する炎で大ダメージを与える",
+				description: "闇の爪で敵単体を切り裂く",
+				ignoreDefense: false,
+				scaling: "magic",
 				effect: () => {
-					const damage = 20 + Math.floor(Math.random() * 10);
-					return { type: "damage", value: damage, element: "fire" };
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.0 + player.level * 1.5 + Math.random() * 4);
+					return { type: "damage", value: damage, element: "dark" };
+				}
+			},
+			{
+				id: "voidSpike",
+				name: "ヴォイドスパイク",
+				requiredLevel: 8,
+				requires: "darkClaw",
+				cost: 2,
+				mpCost: 8,
+				learned: false,
+				canMiss: true,
+				targetType: "enemy",
+				description: "虚無の槍で敵単体を貫く強力な闇属性攻撃",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 1.5 + player.level * 2 + Math.random() * 6);
+					return { type: "damage", value: damage, element: "dark" };
+				}
+			},
+			{
+				id: "abyssRend",
+				name: "アビスレンド",
+				requiredLevel: 15,
+				requires: "voidSpike",
+				cost: 3,
+				mpCost: 14,
+				learned: false,
+				canMiss: false,
+				targetType: "enemy",
+				description: "深淵の力で敵単体に壊滅的な闇属性ダメージを与える",
+				ignoreDefense: true,
+				scaling: "magic",
+				effect: () => {
+					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
+					const damage = Math.floor(magic * 2.2 + player.level * 3 + Math.random() * 10);
+					return { type: "damage", value: damage, element: "dark" };
 				}
 			}
 		]
@@ -148,14 +416,46 @@ const skillTree = {
 				requiredLevel: 1,
 				requires: null,
 				cost: 1,
-				mpCost: 5,
+				mpCost: 4,
 				learned: false,
 				canMiss: false,
 				targetType: "self",
-				description: "HPを少し回復",
+				description: "HPを少し回復する",
 				effect: () => {
-					const heal = 15;
-					return { type: "heal", value: heal };
+					const recovery = Math.floor(player.level * 2 + 10); // 例：Lv5で20回復
+					return { type: "heal", value: recovery };
+				}
+			},
+			{
+				id: "greaterHeal",
+				name: "グレーターヒール",
+				requiredLevel: 7,
+				requires: "heal",
+				cost: 2,
+				mpCost: 8,
+				learned: false,
+				canMiss: false,
+				targetType: "self",
+				description: "HPを中程度回復する",
+				effect: () => {
+					const recovery = Math.floor(player.level * 3 + 20); // 例：Lv10で50回復
+					return { type: "heal", value: recovery };
+				}
+			},
+			{
+				id: "divineHeal",
+				name: "ディバインヒール",
+				requiredLevel: 14,
+				requires: "greaterHeal",
+				cost: 3,
+				mpCost: 14,
+				learned: false,
+				canMiss: false,
+				targetType: "self",
+				description: "HPを大きく回復する",
+				effect: () => {
+					const recovery = Math.floor(player.level * 4 + 40); // 例：Lv15で100回復
+					return { type: "heal", value: recovery };
 				}
 			}
 		]
@@ -209,6 +509,10 @@ function showSkillTreeMenu() {
 	document.getElementById("modal-bg").style.display = "block";
 }
 
+// グローバル公開
+window.showSkillTreeMenu = showSkillTreeMenu;
+window.closeSkillTreeMenu = closeSkillTreeMenu;
+
 function closeSkillTreeMenu() {
 	document.getElementById("skill-tree-menu").style.display = "none";
 	document.getElementById("modal-bg").style.display = "none";
@@ -221,26 +525,50 @@ document.getElementById("modal-bg").addEventListener("click", () => {
 
 // スキル習得条件チェック
 function canLearnSkill(skill) {
+	// すでに習得済みなら不可（念のため）
+	if (skill.learned) return false;
+
+	// レベルが足りない
 	if (player.level < skill.requiredLevel) return false;
-	if (!skill.requires) return true;
-	const requiredSkill = findSkillById(skill.requires);
-	return requiredSkill && requiredSkill.learned;
+
+	// 前提スキルがある場合、それを習得しているか確認
+	if (skill.requires) {
+		const requiredSkill = findSkillById(skill.requires);
+		if (!requiredSkill || !requiredSkill.learned) return false;
+	}
+
+	// すべての条件を満たしていれば習得可能
+	return true;
 }
 
 // スキル検索
 function findSkillById(id) {
-	for (const branchKey in skillTree) {
-		const skill = skillTree[branchKey].skills.find((s) => s.id === id);
-		if (skill) return skill;
+	for (const branch of Object.values(skillTree)) {
+		if (!branch.skills || !Array.isArray(branch.skills)) continue;
+
+		for (const skill of branch.skills) {
+			if (skill.id === id) return skill;
+
+			// 将来的に skill.subSkills のようなネストがある場合に備えて再帰探索
+			if (skill.subSkills && Array.isArray(skill.subSkills)) {
+				const found = findSkillInNested(skill.subSkills, id);
+				if (found) return found;
+			}
+		}
 	}
 	return null;
 }
 
-// グローバル公開
-window.showSkillTreeMenu = showSkillTreeMenu;
-window.closeSkillTreeMenu = closeSkillTreeMenu;
-
-const MAX_INVENTORY = 10; // ← 好きな数に調整してね！
+function findSkillInNested(skills, id) {
+	for (const skill of skills) {
+		if (skill.id === id) return skill;
+		if (skill.subSkills && Array.isArray(skill.subSkills)) {
+			const found = findSkillInNested(skill.subSkills, id);
+			if (found) return found;
+		}
+	}
+	return null;
+}
 
 const equipmentList = {
 	weapons: [{
@@ -283,14 +611,16 @@ const enemyPool = [
 		id: "slime",
 		name: "スライム",
 		type: "slime",
-		spawnRate: 0.5, // 50%の確率で出現候補に
+		spawnRate: 0.75, // 75%の確率で出現候補に
 		baseLevel: 1,
 		rarity: "common",
 		hp: 20,
-		attack: 4,
-		speed: 2,
-		accuracy: 90,
-		exp: 5,
+		baseAttack: 4,
+		defense: 1,
+		baseSpeed: 2,
+		baseAccuracy: 85,
+		baseCrit: 1,
+		exp: 2,
 		image: "images/slime.png",
 		dropTable: [
 			{
@@ -300,7 +630,7 @@ const enemyPool = [
 					defense: 1,
 					rarity: "common"
 				},
-				chance: 0.5
+				chance: 0.7
 			}
 		]
 	},
@@ -308,14 +638,16 @@ const enemyPool = [
 		id: "goblin",
 		name: "ゴブリン",
 		type: "goblin",
-		spawnRate: 0.3, // 30%の確率で出現候補に
+		spawnRate: 0.2, // 20%の確率で出現候補に
 		baseLevel: 2,
 		rarity: "uncommon",
-		hp: 30,
-		attack: 6,
-		speed: 3,
-		accuracy: 92,
-		exp: 8,
+		hp: 29,
+		baseAttack: 6,
+		defense: 2,
+		baseSpeed: 3,
+		baseAccuracy: 89,
+		baseCrit: 0.9,
+		exp: 6,
 		image: "images/goblin.png",
 		dropTable: [
 			{
@@ -336,14 +668,16 @@ const enemyPool = [
 		id: "goldenslime",
 		name: "ゴールデンスライム",
 		type: "goldenslime",
-		spawnRate: 0.01, // 1%の確率で出現候補に
+		spawnRate: 0.02, // 2%の確率で出現候補に
 		baseLevel: 5,
 		rarity: "legendary",
 		hp: 50,
-		attack: 10,
-		speed: 8,
-		accuracy: 95,
-		exp: 100,
+		baseAttack: 10,
+		defense: 10,
+		baseSpeed: 10,
+		baseAccuracy: 95,
+		baseCrit: 10,
+		exp: 50,
 		image: "images/goldenslime.png",
 		dropTable: [
 			{
@@ -355,7 +689,7 @@ const enemyPool = [
 					critRate: 0.3,
 					critMultiplier: 3
 				},
-				chance: 0.01
+				chance: 0.05
 			}
 		]
 	},
@@ -364,14 +698,16 @@ const enemyPool = [
 		id: "dragon",
 		name: "ドラゴン",
 		type: "boss",
-		spawnRate: 0.00, // 0%の確率で出現候補に
+		spawnRate: 0.0, // 通常出現しない（ボス専用）
 		baseLevel: 10,
 		rarity: "epic",
-		hp: 100,
-		attack: 20,
-		speed: 5,
-		accuracy: 95,
-		exp: 200,
+		hp: 300,
+		baseAttack: 30,
+		defense: 15,
+		baseSpeed: 10,
+		baseAccuracy: 100,
+		baseCrit: 10,
+		exp: 100,
 		image: "images/dragon.png",
 		dropTable: [
 			{
@@ -381,7 +717,7 @@ const enemyPool = [
 					defense: 10,
 					rarity: "rare"
 				},
-				chance: 0.1
+				chance: 0.5
 			}
 		]
 	}
@@ -397,19 +733,27 @@ function toggleMenu() {
 }
 
 function addItemToInventory(item) {
-	if (player.inventory.length >= MAX_INVENTORY) {
-		updateLog(`📦 ${item.name} を拾えなかった（所持数がいっぱい）`);
+	const typeLabel = item.type === "weapon" ? "（武器）" :
+		item.type === "armor" ? "（防具）" : "";
+
+	const totalItems = player.inventory.weapons.length + player.inventory.armors.length;
+	if (totalItems >= MAX_INVENTORY) {
+		updateLog(`📦 ${item.name}${typeLabel} を拾えなかった（所持数がいっぱい）`, "gray");
 		updateLog("🧹 所持品を整理してください！");
-		showInventoryMenu(); // ← 自動で整理画面を開く！
+		showInventoryMenu();
 		return false;
 	}
-	player.inventory.push(item);
-	updateLog(`📦 ${item.name} を手に入れた！`);
 
-	// 所持数が上限に近づいたら警告（任意）
-	if (player.inventory.length === MAX_INVENTORY) {
-		updateLog("⚠️ 所持品がいっぱいになりました！");
-		showInventoryMenu(); // 整理を促す
+	// 追加
+	player.inventory[item.type + "s"].push(item);
+	updateLog(`📦 ${item.name}${typeLabel} を手に入れた！（未装備）`);
+
+	const remaining = MAX_INVENTORY - (player.inventory.weapons.length + player.inventory.armors.length);
+	if (remaining <= 2) {
+		updateLog(`⚠️ 所持品が残り ${remaining} 枠です！`);
+		if (remaining === 0) {
+			showInventoryMenu();
+		}
 	}
 
 	return true;
@@ -548,6 +892,13 @@ function talkToVillagerById(id) {
 		return;
 	}
 
+	// ✅ 完了済みを最初にチェック！
+	if (quest.completed) {
+		updateLog(`${villager.name}：『${villager.dialogue.completed}』`);
+		return;
+	}
+
+	// ✅ 未受注のときだけ受注ダイアログを出す
 	if (!quest.started) {
 		showDialogue(`${villager.name}：『${villager.dialogue.intro}』`, ["引き受ける", "断る"], (choice) => {
 			if (choice === "引き受ける") {
@@ -556,13 +907,15 @@ function talkToVillagerById(id) {
 				updateLog(`${villager.name}：『そうか…残念だ』`);
 			}
 		});
-	} else if (!quest.completed && quest.progress >= def.goal && def.autoComplete === false) {
+		return;
+	}
+
+	// ✅ 報告可能なとき
+	if (quest.progress >= def.goal && def.autoComplete === false) {
 		completeQuest(villager.questKey);
 		updateLog(`${villager.name}：『${villager.dialogue.thanks}』`);
-	} else if (!quest.completed) {
-		updateLog(`${villager.name}：『${villager.dialogue.inProgress}』`);
 	} else {
-		updateLog(`${villager.name}：『${villager.dialogue.completed}』`);
+		updateLog(`${villager.name}：『${villager.dialogue.inProgress}』`);
 	}
 }
 
@@ -596,7 +949,7 @@ function startQuest(key) {
 		updateLog("⚠️ すでに開始済みのクエストです！");
 	}
 
-	renderQuestList?.(); // クエストログがあれば更新
+	renderQuestList(); // クエストログがあれば更新
 }
 
 function completeQuest(key) {
@@ -613,7 +966,7 @@ function completeQuest(key) {
 		def.reward();
 	}
 
-	renderQuestList?.(); // ← クエストログがあれば更新
+	renderQuestList(); // ← クエストログがあれば更新
 }
 
 function log(message) {
@@ -651,12 +1004,38 @@ function generateEnemy(level, options = {}) {
 		return Math.random() < (e.spawnRate || 0);
 	});
 
-	// 候補がなければ通常敵からランダムに
+	// 候補がなければゴブリン
 	if (candidates.length === 0) {
-		candidates = enemyPool.filter(e => e.type === "normal");
+		candidates = enemyPool.filter(e => e.type === "goblin");
+	}
+
+	// それでもいなければ仮の敵を返す
+	if (candidates.length === 0) {
+		console.warn("⚠️ 敵候補が見つからなかったので仮の敵を生成します");
+		return {
+			name: "？？？",
+			baseLevel: 1,
+			hp: 10,
+			attack: 1,
+			defense: 0,
+			speed: 1,
+			crit: 0,
+			exp: 1,
+			image: "images/slime.png", drop: null
+		};
 	}
 
 	const base = structuredClone(candidates[Math.floor(Math.random() * candidates.length)]);
+
+	// 🔧 安全な初期値を補完
+	base.baseLevel ??= 1;
+	base.hp ??= 10;
+	base.baseAttack ??= base.attack ?? 1;
+	base.baseAccuracy ??= base.accuracy ?? 100;
+	base.baseCrit ??= base.crit ?? 0;
+	base.baseSpeed ??= base.speed ?? 1;
+	base.defense ??= 1;
+	base.exp ??= 1;
 
 	// レベル補正
 	const levelVariance = getRandomInt(-1, 2); // -1〜+2の範囲で変動
@@ -667,14 +1046,20 @@ function generateEnemy(level, options = {}) {
 	base.name += ` Lv${targetLevel}`;
 
 	base.hp += levelDiff * 5;
-	base.attack += Math.floor(levelDiff * 1.2);
+	base.baseAttack += Math.floor(levelDiff * 1.2);
 	base.defense += Math.floor(levelDiff * 0.8);
-	base.speed = (base.speed || 1) + Math.floor(levelDiff * 0.3);
-	base.crit = (base.crit || 0) + Math.floor(levelDiff * 0.2);
+	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.3);
+	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.2);
+	base.baseAccuracy ??= base.accuracy ?? 100;
 	base.exp += levelDiff * 5;
+	// 旧プロパティにコピー（互換性のため）
+	base.attack = base.baseAttack;
+	base.accuracy = base.baseAccuracy;
+	base.crit = base.baseCrit;
+	base.speed = base.baseSpeed;
 
 	base.hp = Math.max(1, base.hp);
-	base.attack = Math.max(1, base.attack);
+	base.baseAttack = Math.max(1, base.baseAttack);
 	base.defense = Math.max(0, base.defense);
 
 	// ドロップ抽選（1つだけ）
@@ -780,6 +1165,7 @@ function updateStatus() {
 
 	const hpPercent = Math.floor((player.hp / player.maxHp) * 100);
 	const mpPercent = Math.floor((player.mp / player.maxMp) * 100);
+	const magic = getTotalStat(player.baseMagic, player.magicBonus, player.weapon?.magic || 0);
 
 	status.innerHTML =
 		`
@@ -856,9 +1242,11 @@ function playBGM(type) {
 }
 
 function battle(enemyTemplate) {
-	currentEnemy = structuredClone(enemyTemplate); // ← より安全なコピー
+	currentEnemy = structuredClone(enemyTemplate); // 安全なコピー
 	inBattle = true;
 	playerTurn = null;
+
+	player.potionUsedThisTurn = false; // ← 戦闘開始時にリセット（念のため）
 
 	announceEnemyAppearance(currentEnemy);
 	showEnemyImage(currentEnemy.image);
@@ -877,11 +1265,12 @@ function announceEnemyAppearance(enemy) {
 }
 
 function determineTurnOrder() {
-	const playerSpeed = player.speed || 0;
+	const playerSpeed = getTotalStat(player.baseSpeed, player.speedBonus);
 	const enemySpeed = currentEnemy.speed || 0;
 
 	if (playerSpeed >= enemySpeed) {
 		playerTurn = true;
+		player.potionUsedThisTurn = false; // ← プレイヤーのターン開始時にリセット！
 		updateLog("あなたが先手を取った！");
 	} else {
 		playerTurn = false;
@@ -889,32 +1278,47 @@ function determineTurnOrder() {
 		setTimeout(() => {
 			enemyAttack(currentEnemy);
 			playerTurn = true;
+			player.potionUsedThisTurn = false; // ← 敵の攻撃後にプレイヤーのターン開始！
+			updateLog("あなたのターン！");
 		}, 500);
 	}
 }
 
 function attack() {
+	if (!inBattle || !playerTurn || player.hp <= 0) return;
+
+	playerTurn = false; // ← ここで即ブロック！
+
 	if (!currentEnemy) return;
 
-	// 命中判定
-	if (!didHit(player.accuracy || 100, currentEnemy.speed || 0)) {
+	const label = "attack";
+
+	// 命中判定（プレイヤーの命中 vs 敵のすばやさ）
+	const accuracy = getTotalStat(player.baseAccuracy, player.accuracyBonus, player.weapon?.accuracy || 0);
+	const enemySpeed = getTotalStat(currentEnemy.baseSpeed, currentEnemy.speedBonus);
+
+	if (!didHit(accuracy, enemySpeed)) {
 		updateLog("😵 攻撃が外れた！");
 		endPlayerTurn();
 		return;
 	}
 
 	// ダメージ計算
-	let baseDamage = player.attack + (player.weapon?.attack || 0);
+	const totalAttack = getTotalStat(player.baseAttack, player.attackBonus, player.weapon?.attack || 0);
+	let baseDamage = totalAttack;
 	let isCritical = false;
 
-	const totalCritRate = (player.crit || 0) / 100 + (player.weapon?.critRate || 0);
+	const totalCritRate = getTotalStat(player.baseCrit, player.critBonus, player.weapon?.critRate || 0) / 100;
+
 	if (Math.random() < totalCritRate) {
 		const critMultiplier = player.weapon?.critMultiplier || 2;
 		baseDamage *= critMultiplier;
 		isCritical = true;
 	}
 
-	const damage = Math.floor(baseDamage);
+	const enemyDefense = currentEnemy.defense || 0;
+	const damage = Math.max(1, Math.floor(baseDamage - enemyDefense));
+
 	currentEnemy.hp -= damage;
 
 	// ログ表示
@@ -936,14 +1340,18 @@ function castSkill(name) {
 	if (!playerTurn) return updateLog("今は相手のターンだよ！");
 	if (player.hp <= 0) return updateLog("気絶していてスキルを使えない…！");
 
-	const skill = getLearnedSkills().find(s => s.name === name);
+	playerTurn = false; // ← ここで即ブロック！
+	const skill = getLearnedSkills().find(s => s.name.trim() === name.trim());
+
 	if (!skill) return updateLog(`『${name}』はまだ習得していないか、使えないスキルです！`);
 	if (player.mp < skill.mpCost) return updateLog("MPが足りない！");
 
 	player.mp -= skill.mpCost;
 
 	// 命中判定（canMiss が true のとき）
-	if (skill.canMiss && !didHit(player.accuracy || 100, currentEnemy.speed || 0)) {
+	const accuracy = getTotalStat(player.baseAccuracy, player.accuracyBonus, player.weapon?.accuracy || 0);
+	const enemySpeed = getTotalStat(currentEnemy.baseSpeed, currentEnemy.speedBonus);
+	if (skill.canMiss && !didHit(accuracy, enemySpeed)) {
 		updateLog("😵 スキルが外れた！");
 		endPlayerTurn();
 		return;
@@ -953,8 +1361,9 @@ function castSkill(name) {
 	const result = skill.effect();
 
 	if (result?.type === "damage") {
-		currentEnemy.hp -= result.value;
-		updateLog(`🔥 ${skill.name}！${currentEnemy.name} に ${result.value} ダメージ！`, "orange");
+		const damage = Math.max(1, result.value); // 最低1ダメージ保証
+		currentEnemy.hp -= damage;
+		updateLog(`🔥 ${skill.name}！${currentEnemy.name} に ${damage} ダメージ！`, "orange");
 	} else if (result?.type === "heal") {
 		player.hp = Math.min(player.maxHp, player.hp + result.value);
 		updateLog(`✨ ${skill.name} でHPを${result.value}回復！`, "blue");
@@ -971,13 +1380,16 @@ function castSkill(name) {
 }
 
 function didHit(accuracy, targetSpeed) {
-	const evasion = (targetSpeed || 0) * 2;
-	const hitChance = Math.max(0.1, (accuracy - evasion) / 100);
-	return Math.random() < hitChance;
+	const evasion = (targetSpeed || 0) * 0.8;
+	const hitChance = Math.min(1.00, Math.max(0.6, (accuracy - evasion) / 100));
+	const roll = Math.random(); // ← 0〜1 の小数に統一！
+	console.log(`命中判定: 命中率=${(hitChance * 100).toFixed(1)}% 判定値=${(roll * 100).toFixed(1)}%`);
+	return roll < hitChance;
 }
 
 function endPlayerTurn() {
 	playerTurn = false;
+	player.potionUsedThisTurn = false; // ← これが必要！
 	setTimeout(() => {
 		enemyAttack(currentEnemy);
 		playerTurn = true;
@@ -995,14 +1407,9 @@ function handleEnemyDefeat() {
 		if (roll < currentEnemy.drop.chance) {
 			const drop = currentEnemy.drop;
 			obtainEquipment(drop.type, drop.item);
-
-			if (drop.type === "weapon") {
-				player.weapon = drop.item;
-				updateLog(`『${drop.item.name}』を装備した！`);
-			} else if (drop.type === "armor") {
-				player.armor = drop.item;
-				updateLog(`『${drop.item.name}』を装備した！`);
-			}
+			// 自動装備はしない！
+			updateLog(`${drop.type === "weapon" ? "🗡️" : "🛡️"} ${drop.item.name} を手に入れた！（未装備）`);
+			updateLog("📦 装備メニューから装備できます！");
 		}
 	}
 
@@ -1046,8 +1453,7 @@ function openSkillMenu() {
 			} else {
 				btn.onclick = () => {
 					closeSkillMenu();
-					player.mp -= skill.mpCost;
-					skill.effect(currentEnemy);
+					castSkill(skill.name);
 					updateStatus();
 					enemyAttack(currentEnemy);
 				};
@@ -1066,37 +1472,40 @@ function closeSkillMenu() {
 	document.getElementById("modal-bg").style.display = "none";
 }
 
-function obtainEquipment(type, item, autoEquip = false) {
+// 自動装備を完全に禁止
+function obtainEquipment(type, item) {
 	const color = rarityColors[item.rarity] || "white";
 
 	if (type === "weapon") {
 		player.inventory.weapons.push(item);
-		updateLog(`🗡️ ${item.name} を手に入れた！`, color);
-		if (autoEquip) {
-			player.weapon = item;
-			updateLog(`『${item.name}』を装備した！`);
-		}
 	} else if (type === "armor") {
 		player.inventory.armors.push(item);
-		updateLog(`🛡️ ${item.name} を手に入れた！`, color);
-		if (autoEquip) {
-			player.armor = item;
-			updateLog(`『${item.name}』を装備した！`);
-		}
 	}
 
 	updateStatus();
 }
 
 function enemyAttack(enemy) {
-	if (!enemy || typeof enemy.attack !== "number") {
-		console.warn("敵が存在しないか、攻撃力が未定義です");
+	if (!enemy) {
+		console.warn("敵が存在しません");
 		return;
 	}
 
-	const rawDamage = Math.floor(Math.random() * enemy.attack) + 1;
-	const armorDef = player.armor ? player.armor.defense : 0;
-	const damage = Math.max(0, rawDamage - armorDef);
+	// 命中判定
+	const enemyAccuracy = getTotalStat(enemy.baseAccuracy || 0, enemy.accuracyBonus || 0, enemy.weapon?.accuracy || 0);
+	const playerEvasion = getTotalStat(player.baseSpeed, player.speedBonus);
+	if (!didHit(enemyAccuracy, playerEvasion)) {
+		updateLog(`${enemy.name} の攻撃は外れた！`, "gray");
+		endPlayerTurn();
+		return;
+	}
+
+	// ダメージ計算
+	const enemyAttackPower = getTotalStat(enemy.baseAttack || 0, enemy.attackBonus || 0, enemy.weapon?.attack || 0);
+	const rawDamage = Math.floor(enemyAttackPower * (0.8 + Math.random() * 0.4)); // 80〜120%
+	const totalDefense = getTotalStat(player.baseDefense, player.defenseBonus, player.armor?.defense || 0);
+	const damage = Math.max(1, Math.floor(rawDamage - totalDefense));
+
 	player.hp -= damage;
 
 	updateLog(`${enemy.name} の攻撃！${damage} ダメージを受けた！`, "red");
@@ -1120,8 +1529,13 @@ function move(dir) {
 	if (dir === "down" && player.y < mapSize - 1) player.y++;
 	if (dir === "left" && player.x > 0) player.x--;
 	if (dir === "right" && player.x < mapSize - 1) player.x++;
+
 	drawMap();
-	player.hasActedThisTurn = false; // ← ここで毎回リセット！
+
+	// ここで毎回フラグリセット！
+	player.hasActedThisTurn = false;
+	player.potionUsedThisTurn = false;
+	player.actionTakenThisStep = false;
 
 	const tile = mapData[player.y][player.x];
 
@@ -1129,14 +1543,16 @@ function move(dir) {
 	if (tile === "🏠") {
 		let targetVillager = "villager1"; // デフォルト
 
-		// 例：薬草クエストが未開始で、スライム退治が終わっていたら villager2 に切り替え
+		// スライム退治が終わっていたら villager2 に切り替え
+		const herb = player.quests.herbGathering;
 		if (
 			player.quests.slimeHunt?.completed &&
-			!player.quests.herbGathering?.started
+			herb &&
+			!herb.completed
 		) {
 			targetVillager = "villager2";
 		}
-
+		console.log("クエストキー:", targetVillager);
 		talkToVillagerById(targetVillager);
 
 		// 回復処理（共通）
@@ -1150,11 +1566,11 @@ function move(dir) {
 	} else if (tile === "🌿") { // 草むらに入ったとき
 		updateLog("草むらに入った…");
 		const roll = Math.random();
-		if (roll < 0.5) {
+		if (roll < 0.3) {
 			const enemy = generateEnemy(player.level, { forceType: "goblin" });
 			updateLog("🌿 草むらからゴブリンが飛び出してきた！");
 			battle(enemy);
-		} else if (roll < 0.8) {
+		} else if (roll < 0.7) {
 			handleGrassTile(); // 薬草クエスト処理
 		} else {
 			updateLog("🌿 風がそよそよ…何も見つからなかった。");
@@ -1167,7 +1583,6 @@ function move(dir) {
 		const chance = Math.random();
 		if (chance < 0.3) {
 			const enemy = generateEnemy(player.level);
-			console.log(enemy.image)
 			battle(enemy);
 		} else if (chance < 0.4) {
 			findItem();
@@ -1196,165 +1611,107 @@ function showInventoryMenu() {
 	const menu = document.getElementById("inventory-menu");
 	const bg = document.getElementById("modal-bg");
 
-	const weaponCount = player.inventory.weapons.length;
-	const armorCount = player.inventory.armors.length;
-	const totalCount = weaponCount + armorCount;
+	const weapons = player.inventory.weapons;
+	const armors = player.inventory.armors;
+	const totalCount = weapons.length + armors.length;
 
-	menu.innerHTML = `<h3>🎒 所持品から装備（${totalCount} / ${MAX_INVENTORY}）</h3>`;
+	menu.innerHTML = `<h3>🎒 所持品（${totalCount} / ${MAX_INVENTORY}）</h3>`;
 
 	if (totalCount >= MAX_INVENTORY - 2) {
 		const hint = document.createElement("p");
-		hint.style.marginBottom = "10px";
-		hint.style.fontSize = "0.9em";
-		hint.style.color = "#555";
-		hint.innerHTML = `
-        🧹 所持品がいっぱいです。<strong>「捨てる」</strong>や
-        <strong>「合成」</strong>で整理しましょう！`;
+		hint.innerHTML = `🧹 所持品がいっぱいです。<strong>「捨てる」</strong>や<strong>「合成」</strong>で整理しましょう！`;
+		hint.style.cssText = "margin-bottom:10px; font-size:0.9em; color:#555;";
 		menu.appendChild(hint);
 	}
 
-	const isEquipped = (item, type) => {
-		if (type === "weapon") return player.weapon === item;
-		if (type === "armor") return player.armor === item;
-		return false;
+	const createItemRow = (item, index, type) => {
+		const wrapper = document.createElement("div");
+
+		const isEquipped = (type === "weapon" && player.weapon === item) ||
+			(type === "armor" && player.armor === item);
+		const label = isEquipped ? "★" : "";
+		const stat = type === "weapon" ? `攻撃+${item.attack}` : `防御+${item.defense}`;
+
+		const btn = document.createElement("button");
+		btn.textContent = `${label}${item.name}（${stat}）`;
+		btn.style.color = rarityColors[item.rarity] || "white";
+		if (isEquipped) btn.style.fontWeight = "bold";
+		btn.onclick = () => {
+			if (type === "weapon") player.weapon = item;
+			else player.armor = item;
+			updateLog(`『${item.name}』を装備した！`);
+			updateStatus();
+			showInventoryMenu();
+		};
+		wrapper.appendChild(btn);
+
+		const drop = document.createElement("button");
+		drop.textContent = "捨てる";
+		drop.onclick = () => {
+			if (isEquipped) {
+				if (type === "weapon") player.weapon = null;
+				else player.armor = null;
+				updateLog(`『${item.name}』を外した`);
+			}
+			player.inventory[type + "s"].splice(index, 1);
+			updateLog(`${item.name} を捨てた`);
+			updateStatus();
+			refreshStatusScreen();
+			showInventoryMenu();
+		};
+		wrapper.appendChild(drop);
+
+		const list = player.inventory[type + "s"];
+		const sameCount = list.filter(i => i.name === item.name).length;
+		if (sameCount >= 2) {
+			const combine = document.createElement("button");
+			combine.textContent = `合成（${sameCount}）`;
+			combine.onclick = () => {
+				let removed = 0;
+				player.inventory[type + "s"] = list.filter(i => {
+					if (i.name === item.name && removed < 2) {
+						removed++;
+						return false;
+					}
+					return true;
+				});
+				const upgraded = {
+					...item,
+					name: item.name + "＋",
+					rarity: Math.min((item.rarity || 1) + 1, 5),
+				};
+				if (type === "weapon") upgraded.attack += 1;
+				else upgraded.defense += 1;
+
+				player.inventory[type + "s"].push(upgraded);
+				updateLog(`${item.name} を合成して ${upgraded.name} を作った！`);
+				showInventoryMenu();
+			};
+			wrapper.appendChild(combine);
+		}
+
+		menu.appendChild(wrapper);
 	};
 
-	const isCombinable = (item, list) => {
-		return list.filter(i => i.name === item.name).length >= 2;
+	// ソートして表示
+	const sortByRarity = list => list.sort((a, b) => (b.rarity || 0) - (a.rarity || 0));
+
+	const section = (title, list, type) => {
+		const titleElem = document.createElement("p");
+		titleElem.textContent = title;
+		menu.appendChild(titleElem);
+
+		if (list.length === 0) {
+			menu.appendChild(document.createTextNode(`${title}を持っていません`));
+		} else {
+			sortByRarity(list).forEach((item, index) => {
+				createItemRow(item, index, type);
+			});
+		}
 	};
 
-	// 武器一覧
-	const weaponTitle = document.createElement("p");
-	weaponTitle.textContent = "武器";
-	menu.appendChild(weaponTitle);
-
-	if (weaponCount === 0) {
-		menu.appendChild(document.createTextNode("武器を持っていません"));
-	} else {
-		player.inventory.weapons.forEach((item, index) => {
-			const wrapper = document.createElement("div");
-
-			const label = isEquipped(item, "weapon") ? "★" : "";
-			const btn = document.createElement("button");
-			btn.textContent = `${label}${item.name}（攻撃+${item.attack}）`;
-			btn.style.color = rarityColors[item.rarity] || "white";
-			btn.onclick = () => {
-				player.weapon = item;
-				updateLog(`『${item.name}』を装備した！`);
-				updateStatus();
-				showInventoryMenu();
-			};
-			wrapper.appendChild(btn);
-
-			const drop = document.createElement("button");
-			drop.textContent = "捨てる";
-			drop.onclick = () => {
-				// 装備中なら外す
-				if (player.weapon === item) {
-					player.weapon = null;
-					updateLog(`『${item.name}』を外した`);
-				}
-				player.inventory.weapons.splice(index, 1);
-				updateLog(`${item.name} を捨てた`);
-				updateStatus();
-				refreshStatusScreen(); // ステータス画面が開いてたら再描画
-				showInventoryMenu();
-			};
-			wrapper.appendChild(drop);
-
-			if (isCombinable(item, player.inventory.weapons)) {
-				const combine = document.createElement("button");
-				combine.textContent = "合成";
-				combine.onclick = () => {
-					let removed = 0;
-					player.inventory.weapons = player.inventory.weapons.filter(i => {
-						if (i.name === item.name && removed < 2) {
-							removed++;
-							return false;
-						}
-						return true;
-					});
-					const upgraded = {
-						...item,
-						name: item.name + "＋",
-						attack: item.attack + 1
-					};
-					player.inventory.weapons.push(upgraded);
-					updateLog(`${item.name} を合成して ${upgraded.name} を作った！`);
-					showInventoryMenu();
-				};
-				wrapper.appendChild(combine);
-			}
-
-			menu.appendChild(wrapper);
-		});
-	}
-
-	// 防具一覧
-	const armorTitle = document.createElement("p");
-	armorTitle.textContent = "防具";
-	menu.appendChild(armorTitle);
-
-	if (armorCount === 0) {
-		menu.appendChild(document.createTextNode("防具を持っていません"));
-	} else {
-		player.inventory.armors.forEach((item, index) => {
-			const wrapper = document.createElement("div");
-
-			const label = isEquipped(item, "armor") ? "★" : "";
-			const btn = document.createElement("button");
-			btn.textContent = `${label}${item.name}（防御+${item.defense}）`;
-			btn.style.color = rarityColors[item.rarity] || "white";
-			btn.onclick = () => {
-				player.armor = item;
-				updateLog(`『${item.name}』を装備した！`);
-				updateStatus();
-				showInventoryMenu();
-			};
-			wrapper.appendChild(btn);
-
-			const drop = document.createElement("button");
-			drop.textContent = "捨てる";
-			drop.onclick = () => {
-				if (player.armor === item) {
-					player.armor = null;
-					updateLog(`『${item.name}』を外した`);
-				}
-				player.inventory.armors.splice(index, 1);
-				updateLog(`${item.name} を捨てた`);
-				updateStatus();
-				refreshStatusScreen();
-				showInventoryMenu();
-			};
-			wrapper.appendChild(drop);
-
-			if (isCombinable(item, player.inventory.armors)) {
-				const combine = document.createElement("button");
-				combine.textContent = "合成";
-				combine.onclick = () => {
-					let removed = 0;
-					player.inventory.armors = player.inventory.armors.filter(i => {
-						if (i.name === item.name && removed < 2) {
-							removed++;
-							return false;
-						}
-						return true;
-					});
-					const upgraded = {
-						...item,
-						name: item.name + "＋",
-						defense: item.defense + 1
-					};
-					player.inventory.armors.push(upgraded);
-					updateLog(`${item.name} を合成して ${upgraded.name} を作った！`);
-					showInventoryMenu();
-				};
-				wrapper.appendChild(combine);
-			}
-
-			menu.appendChild(wrapper);
-		});
-	}
+	section("武器", weapons, "weapon");
+	section("防具", armors, "armor");
 
 	menu.style.display = "block";
 	bg.style.display = "block";
@@ -1369,8 +1726,36 @@ function refreshStatusScreen() {
 }
 
 function usePotion() {
-	if (player.hasActedThisTurn) {
-		updateLog("今はもう回復できない！");
+	if (!inBattle) {
+		// 戦闘外の処理
+		if (player.actionTakenThisStep) {
+			updateLog("このマスではもう回復できない！");
+			return;
+		}
+		if (player.potions <= 0) {
+			updateLog("ポーションがない！");
+			return;
+		}
+		if (player.hp >= player.maxHp) {
+			updateLog("HPはすでに満タンだ！");
+			return;
+		}
+		player.potions--;
+		const heal = 20;
+		player.hp = Math.min(player.maxHp, player.hp + heal);
+		player.actionTakenThisStep = true; // ← 行動済みに！
+		updateLog(`🧪 ポーションでHPを${heal}回復した！`, "green");
+		updateStatus();
+		return;
+	}
+
+	// 戦闘中の処理
+	if (!playerTurn) {
+		updateLog("今は相手のターンだよ！");
+		return;
+	}
+	if (player.potionUsedThisTurn) {
+		updateLog("このターンはもうポーションを使ったよ！");
 		return;
 	}
 	if (player.potions <= 0) {
@@ -1385,9 +1770,10 @@ function usePotion() {
 	player.potions--;
 	const heal = 20;
 	player.hp = Math.min(player.maxHp, player.hp + heal);
-	player.hasActedThisTurn = true; // ← 回復行動済みにする！
+	player.potionUsedThisTurn = true;
 	updateLog(`🧪 ポーションでHPを${heal}回復した！`, "green");
 	updateStatus();
+	endPlayerTurn();
 }
 
 function rest() {
@@ -1409,6 +1795,7 @@ function rest() {
 	player.hp = Math.min(player.maxHp, player.hp + healHp);
 	player.mp = Math.min(player.maxMp, player.mp + healMp);
 	player.hasActedThisTurn = true;
+	player.actionTakenThisStep = true; // ← 行動済みに！
 
 	updateLog(`🌿 少し休んでHPを${healHp}、MPを${healMp}回復した`);
 	updateStatus();
@@ -1468,12 +1855,12 @@ function levelUp() {
 
 	// ランダム強化（1〜3個のステータスをランダムに強化）
 	const possibleStats = [
-		{ key: "attack", label: "攻撃力", min: 1, max: 3 },
-		{ key: "defense", label: "防御力", min: 1, max: 2 },
-		{ key: "speed", label: "すばやさ", min: 1, max: 2 },
-		{ key: "crit", label: "会心率", min: 1, max: 2 },
-		{ key: "accuracy", label: "命中率", min: 1, max: 2 },
-		{ key: "recovery", label: "回復力", min: 1, max: 2 }
+		{ key: "Attack", label: "攻撃力", min: 1, max: 3 },
+		{ key: "Defense", label: "防御力", min: 1, max: 2 },
+		{ key: "Speed", label: "すばやさ", min: 1, max: 2 },
+		{ key: "Crit", label: "会心率", min: 1, max: 2 },
+		{ key: "Accuracy", label: "命中率", min: 1, max: 2 },
+		{ key: "Recovery", label: "回復力", min: 1, max: 2 }
 	];
 
 	const shuffle = arr => arr.sort(() => Math.random() - 0.5);
@@ -1482,14 +1869,17 @@ function levelUp() {
 
 	chosenStats.forEach(stat => {
 		const amount = getRandomInt(stat.min, stat.max);
-		player[stat.key] = (player[stat.key] || 0) + amount;
+		const baseKey = "base" + stat.key;
+		player[baseKey] = (player[baseKey] || 0) + amount;
 		logMessages.push(`${stat.label} +${amount}`);
 	});
 
 	player.sp++;
 
 	updateLog(`🆙 レベル${player.level}にアップ！`);
-	updateLog(`✨ ${logMessages.join(" / ")}`);
+	if (logMessages.length > 0) {
+		updateLog(`✨ ${logMessages.join(" / ")}`);
+	}
 	updateLog("🎁 SPを1獲得！");
 	updateStatus();
 
@@ -1501,21 +1891,9 @@ function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// 装備補正を計算する関数
-function getTotalStat(base, bonus, equipmentBonus = 0) {
-	return (base || 0) + (bonus || 0) + (equipmentBonus || 0);
-}
-
-//装備補正を取得する関数
-function getEquipmentBonus(statKey) {
-	let bonus = 0;
-	if (player.weapon && player.weapon[statKey]) {
-		bonus += player.weapon[statKey];
-	}
-	if (player.armor && player.armor[statKey]) {
-		bonus += player.armor[statKey];
-	}
-	return bonus;
+function getTotalStat(base = 0, bonus = 0, equip = 0, label = "") {
+	const total = base + bonus + equip;
+	return total;
 }
 
 function showLearnSkillMenu() {
@@ -1612,7 +1990,12 @@ function showStatUpgradeMenu() {
 		{
 			label: "回復力 +1",
 			apply: () => player.recoveryBonus += 1
+		},
+		{
+			label: "魔力 +1", // ← これを追加！
+			apply: () => player.magicBonus += 1
 		}
+
 	];
 
 	upgrades.forEach(upg => {
@@ -1636,19 +2019,16 @@ function showStatUpgradeMenu() {
 	bg.style.display = "block";
 }
 
-function getEquipmentBonus(statKey) {
-	let bonus = 0;
-	if (player.weapon && player.weapon[statKey]) {
-		bonus += player.weapon[statKey];
-	}
-	if (player.armor && player.armor[statKey]) {
-		bonus += player.armor[statKey];
-	}
-	return bonus;
+function capitalize(str) {
+	return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function getTotalStat(base, bonus, equip) {
-	return (base || 0) + (bonus || 0) + (equip || 0);
+// 新しいステータスを追加しても修正不要
+function getEquipmentBonus(key) {
+	let value = 0;
+	if (player.weapon && player.weapon[key]) value += player.weapon[key];
+	if (player.armor && player.armor[key]) value += player.armor[key];
+	return value;
 }
 
 function toggleStatus() {
@@ -1668,17 +2048,22 @@ function toggleStatus() {
 		{ key: "speed", label: "すばやさ" },
 		{ key: "crit", label: "会心率", suffix: "%" },
 		{ key: "accuracy", label: "命中率", suffix: "%" },
-		{ key: "recovery", label: "回復力" }
+		{ key: "recovery", label: "回復力" },
+		{ key: "magic", label: "魔力" } // ← 追加！
 	];
 
 	let html = `<h3>📊 ステータス詳細</h3>`;
 
 	stats.forEach(stat => {
-		const base = player[stat.key] || 0;
-		const bonus = player[`${stat.key}Bonus`] || 0;
+		const baseKey = `base${capitalize(stat.key)}`;
+		const bonusKey = `${stat.key}Bonus`;
+
+		const base = player[baseKey] || 0;
+		const bonus = player[bonusKey] || 0;
 		const equip = getEquipmentBonus(stat.key);
 		const total = getTotalStat(base, bonus, equip);
 		const suffix = stat.suffix || "";
+
 		html += `<p>${stat.label}：${total}${suffix}（基本:${base} + 補正:${bonus} + 装備:${equip}）</p>`;
 	});
 
@@ -1725,46 +2110,68 @@ function closeAllModals() {
 	document.getElementById("skill-menu").style.display = "none";
 }
 
+let player; // ← グローバルに宣言！
 function initGame() {
 	console.log("初期化開始！");
+	// プレイヤー定義
 	player = {
-		// ← let を外すことでグローバル変数を上書き！
 		name: "勇者",
 		level: 1,
 		hp: 30,
 		maxHp: 30,
 		mp: 10,
 		maxMp: 10,
-		attack: 5,
+		magic: 5, // ← これを追加！
+
+		// 基本ステータス
+		baseAttack: 5,
+		baseDefense: 2,
+		baseSpeed: 5,
+		baseAccuracy: 90,
+		baseCrit: 5,
+		baseRecovery: 5,
+		baseMagic: 5,
+
+		// 補正ステータス（バフ・スキルなど）
 		attackBonus: 0,
-		defense: 2,
+		magicBonus: 0,
 		defenseBonus: 0,
-		speed: 2,
 		speedBonus: 0,
-		crit: 0,
-		critBonus: 0,
-		accuracy: 100,
 		accuracyBonus: 0,
-		recovery: 1,
+		critBonus: 0,
 		recoveryBonus: 0,
+
+		// 経験値・スキル・装備など
 		exp: 0,
 		nextExp: 10,
 		sp: 0,
-		skills: [],
+		//skills: [],
 		potions: 1,
 		weapon: null,
 		armor: null,
+
+		// 位置・進行状況
 		x: 0,
 		y: 0,
 		inventory: {
 			weapons: [],
 			armors: []
 		},
-		quests: {}, // ← 空でOK！initializeQuests() が埋めてくれる！
+		quests: {},
 		questStarted: false,
 		questCompleted: false,
 		slimeDefeated: 0,
-		hasActedThisTurn: false
+
+		// 行動制限フラグ
+		potionUsedThisTurn: false, // ← 戦闘中のポーション制限
+		actionTakenThisStep: false // ← 戦闘外の行動制限
+	};
+	player.weapon = {
+		name: "木の棒",
+		attack: 2,
+		accuracy: 5,
+		critRate: 0.03,
+		critMultiplier: 1.5
 	};
 	initializeQuests(); // ← questList に基づいてクエストを補完！
 	drawMap();

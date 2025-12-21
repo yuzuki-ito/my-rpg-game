@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ド〇クエ風RPG</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>🧙‍♂️ ド〇クエ風RPG</h1>
+
+    <main id="game-container">
+      <div id="enemy-image">
+        <img id="enemy-img" src="" alt="敵の画像" />
+      </div>
+
+      <div id="map-and-controls">
+        <div id="main-view">
+          <pre id="map" class="map-display"></pre>
+        </div>
+
+        <div id="controls" aria-label="移動操作">
+          <div class="control-row">
+            <button data-move="up" aria-label="上に移動">↑</button>
+          </div>
+          <div class="control-row">
+            <button data-move="left" aria-label="左に移動">←</button>
+            <button data-move="down" aria-label="下に移動">↓</button>
+            <button data-move="right" aria-label="右に移動">→</button>
+          </div>
+        </div>
+
+        <div id="battle-actions" aria-label="戦闘アクション">
+          <button data-action="attack">こうげき</button>
+          <button data-action="skill">スキル</button>
+          <button data-action="potion">ポーション</button>
+          <button data-action="rest">休む</button>
+        </div>
+      </div>
+
+      <div id="log-panel">
+        <h3>ログ</h3>
+        <div id="log" class="log-box"></div>
+      </div>
+    </main>
+
+    <div id="status-and-actions">
+      <div id="status" class="status-panel"></div>
+
+      <div id="menu-area">
+        <div id="menu-toggle">
+          <button id="menu-button">📂 メニュー</button>
+        </div>
+
+        <div id="extra-menu" style="display: none">
+          <button data-menu="status">ステータス</button>
+          <button data-menu="stat-upgrade">ステータス強化</button>
+          <button data-menu="learn-skill">スキル習得</button>
+          <button data-menu="skill-tree">スキル一覧</button>
+          <button data-menu="inventory">装備変更・所持品</button>
+          <button data-menu="quest-log">クエストログ</button>
+          <button data-menu="save">セーブ</button>
+          <button data-menu="load">ロード</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="status-screen" class="modal-window" style="display: none"></div>
+
+    <div id="stat-upgrade" class="modal-window" style="display: none">
+      <h3>ステータス強化（残りSP: 0）</h3>
+      <div id="stat-options">
+        <!-- ステータス項目がここに動的に追加される -->
+      </div>
+      <div class="modal-footer">
+        <button class="button close-button" onclick="closeStatUpgrade()">
+          閉じる
+        </button>
+      </div>
+    </div>
+
+    <div id="learn-skill-menu" class="modal-window" style="display: none"></div>
+
+    <div id="skill-tree-menu" class="modal-window" style="display: none">
+      <h3>スキル一覧</h3>
+      <div id="skill-tree-container"></div>
+      <button class="button close-button" onclick="closeSkillTree()">
+        閉じる
+      </button>
+    </div>
+
+    <div id="all-skills-menu" class="modal-window" style="display: none">
+      <h3>スキル一覧（全スキル）</h3>
+      <div id="all-skills-container"></div>
+      <button class="button close-button" onclick="closeAllSkillsMenu()">
+        閉じる
+      </button>
+    </div>
+
+    <div id="inventory-menu" class="modal-window" style="display: none"></div>
+
+    <!-- モーダルウィンドウ群 -->
+    <div id="quest-log" class="modal-window" style="display: none">
+      <h3>クエストログ</h3>
+      <div id="questList" style="max-height: 60vh; overflow-y: auto"></div>
+      <button class="button" onclick="closeQuestLog()">閉じる</button>
+    </div>
+    <div id="dialogue-box" class="modal-window" style="display: none"></div>
+
+    <div id="modal-bg" class="modal-bg" style="display: none"></div>
+
+    <!-- BGM -->
+    <audio id="bgm-field" src="audio/bgm_field.mp3" loop></audio>
+    <audio id="bgm-battle" src="audio/bgm_battle.mp3" loop></audio>
+
+    <!-- スクリプト読み込み -->
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

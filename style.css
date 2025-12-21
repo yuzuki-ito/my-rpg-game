@@ -1,0 +1,713 @@
+/* ====== style.css (理想版) ====== */
+
+/* ====== 基本設定 ====== */
+:root {
+  --color-bg: #f0f8ff;
+  --color-text: #333;
+  --color-border: #ccc;
+  --color-accent: #88c;
+  --color-hp: #f66;
+  --color-hp-low: #f00;
+  --color-mp: #66f;
+  --color-log-bg: #fdfdfd;
+  --color-modal-bg: rgba(0, 0, 0, 0.4);
+  --ui-radius: 6px;
+  --ui-padding: 10px;
+  --transition-fast: 0.18s;
+  --transition-medium: 0.3s;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "メイリオ", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+  margin: 20px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1 {
+  font-size: 1.8em;
+  margin-bottom: 10px;
+}
+
+/* ====== ボタン共通スタイル ====== */
+.button {
+  padding: 6px 12px;
+  font-size: 1em;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: #f7f9fb;
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast), transform var(--transition-fast);
+  user-select: none;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:focus {
+  outline: 2px solid rgba(136, 136, 204, 0.25);
+  outline-offset: 2px;
+}
+
+.button:hover {
+  background-color: #eaf6ff;
+  border-color: var(--color-accent);
+}
+
+/* ====== マップ表示 ====== */
+#map {
+  white-space: pre;
+  font-size: 1.5em;
+  line-height: 1.4;
+  margin: 0;
+  text-align: left;
+  padding: 12px;
+  font-family: monospace; /* ← これが大事！ */
+}
+
+.map-display {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono",
+    monospace;
+}
+
+/* ====== レイアウト ====== */
+#game-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#map-and-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* メイン表示領域 */
+#main-view {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 300px;
+  height: 300px;
+  background-color: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  box-sizing: border-box;
+  padding: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* ====== 敵画像 ====== */
+#enemy-image {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#enemy-img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  display: none;
+}
+
+/* ====== ログパネル ====== */
+#log-panel {
+  width: 300px;
+  height: 400px;
+  background-color: var(--color-log-bg);
+  border: 2px solid var(--color-border);
+  padding: var(--ui-padding);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--ui-radius);
+}
+
+#log-panel h3 {
+  margin-top: 0;
+  font-size: 1.1em;
+  text-align: center;
+}
+
+#log {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 0.95em;
+  line-height: 1.45;
+  text-align: left;
+  padding-right: 6px;
+  color: var(--color-text); /* ← これを追加！ */
+}
+
+.log-entry {
+  color: var(--color-text); /* または black など */
+}
+
+#log div {
+  margin-bottom: 6px;
+  word-break: break-word;
+  color: var(--color-text); /* ← これを追加！ */
+}
+
+/* スクロールバー（Chrome系） */
+#log::-webkit-scrollbar {
+  width: 8px;
+}
+#log::-webkit-scrollbar-thumb {
+  background-color: #bbb;
+  border-radius: 6px;
+}
+
+/* ====== 移動ボタン ====== */
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.control-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+#controls button {
+  width: 40px;
+  height: 40px;
+  font-size: 1.2em;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* ====== 戦闘アクション ====== */
+#battle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ====== ステータスとメニュー ====== */
+#status-and-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#status {
+  padding: var(--ui-padding);
+  border: 2px solid var(--color-border);
+  background-color: #fff;
+  text-align: left;
+  min-width: 250px;
+  border-radius: var(--ui-radius);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* ====== HP/MPバー ====== */
+.hp-bar,
+.mp-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #eee;
+  margin: 6px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.hp-fill {
+  height: 100%;
+  background-color: var(--color-hp);
+  transition: width var(--transition-medium) ease;
+}
+
+.hp-fill.low {
+  background-color: var(--color-hp-low);
+  animation: blink 1s infinite;
+}
+
+.mp-fill {
+  height: 100%;
+  background-color: var(--color-mp);
+  transition: width var(--transition-medium) ease;
+}
+
+/* ====== メニュー ====== */
+#menu-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#menu-toggle {
+  margin-top: 20px;
+}
+
+#extra-menu {
+  display: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fbfdff;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+}
+
+/* ホバーはボタン側で統一 */
+#extra-menu button:hover {
+  background-color: #eaf6ff;
+}
+
+/* ====== モーダルウィンドウ ====== */
+.modal-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 2px solid #444;
+  padding: 15px;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+}
+
+.modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-modal-bg);
+  z-index: 900;
+}
+
+/* ====== スキルツリー ====== */
+#skill-tree-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skill-branch {
+  border-left: 2px solid #ddd;
+  padding-left: 10px;
+}
+
+.skill-node {
+  margin-left: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  position: relative;
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.skill-node.learned {
+  background-color: #e6f7e6;
+  border-color: seagreen;
+}
+
+.skill-node.learned::after {
+  content: "✔";
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  color: seagreen;
+  font-weight: bold;
+}
+
+.skill-node.locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.skill-node.view-only {
+  background-color: #f9f9f9;
+  color: #444;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  margin: 4px 0;
+  border-radius: 4px;
+  cursor: default;
+}
+
+/* ====== 装飾クラス ====== */
+.red {
+  color: crimson;
+}
+.green {
+  color: seagreen;
+}
+.blue {
+  color: royalblue;
+}
+.orange {
+  color: orange;
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-medium) ease-in;
+}
+
+.rare-glow {
+  filter: drop-shadow(0 0 6px gold);
+  animation: pulse 1s infinite alternate;
+}
+
+.unavailable {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f3f3f3;
+  color: #888;
+  border: 1px solid #ddd;
+}
+
+/* ====== ログメッセージの色分け ====== */
+.log-default {
+  color: var(--color-text);
+}
+
+.log-damage {
+  color: crimson;
+}
+
+.log-critical {
+  color: orangered;
+  font-weight: bold;
+}
+
+.log-heal {
+  color: seagreen;
+}
+
+.log-dodge,
+.log-miss {
+  color: gray;
+  font-style: italic;
+}
+
+.log-defeat {
+  color: goldenrod;
+  font-weight: bold;
+}
+
+.log-quest {
+  color: darkorange;
+  font-weight: bold;
+}
+
+.log-skill {
+  color: mediumvioletred;
+  font-weight: bold;
+}
+
+.log-enemy {
+  color: crimson;
+  font-weight: bold;
+}
+
+/* ====== アニメーション ====== */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+/* ====== レスポンシブ対応 ====== */
+@media (max-width: 900px) {
+  #game-container {
+    gap: 20px;
+  }
+  #log-panel {
+    width: 260px;
+    height: 360px;
+  }
+  #main-view {
+    min-width: 260px;
+    height: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  #status-and-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #extra-menu {
+    width: 90%;
+  }
+
+  #log-panel {
+    width: 90%;
+    height: 260px;
+  }
+
+  #main-view {
+    width: 90%;
+    height: auto;
+    min-height: 220px;
+  }
+}
+
+.legendary-glow {
+  filter: drop-shadow(0 0 8px crimson);
+  animation: pulse-legendary 0.6s infinite alternate;
+}
+
+@keyframes pulse-legendary {
+  from {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px crimson);
+  }
+  to {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 16px orangered);
+  }
+}
+
+#levelup-menu {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  padding: 16px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 260px;
+  max-width: 90%;
+  text-align: center;
+  animation: fadeIn var(--transition-medium) ease-in;
+}
+
+#levelup-menu p {
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+#levelup-menu button {
+  margin: 6px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  border-radius: var(--ui-radius);
+  border: 1px solid var(--color-border);
+  background-color: #f7f9fb;
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+#levelup-menu button:hover {
+  background-color: #eaf6ff;
+  border-color: var(--color-accent);
+}
+
+#levelup-menu button:active {
+  transform: translateY(1px);
+}
+
+#inventory-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.inventory-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.small-button {
+  padding: 2px 6px;
+  font-size: 0.8em;
+  line-height: 1.2;
+}
+
+.item-label {
+  margin-bottom: 4px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap; /* 折り返しOKにする */
+  gap: 4px; /* ボタン間のすき間を最小限に */
+  justify-content: flex-start;
+}
+
+.button-group .button,
+.button-group button {
+  padding: 2px 6px;
+  font-size: 0.75em;
+}
+
+.inventory-item .button {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px; /* 必要に応じて調整 */
+}
+
+#learn-skill-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#learn-skill-menu button {
+  margin: 6px 0;
+  width: auto;
+  text-align: left;
+}
+
+.red {
+  color: crimson;
+}
+.green {
+  color: seagreen;
+}
+.blue {
+  color: royalblue;
+}
+.gold {
+  color: goldenrod;
+}
+
+.quest-entry {
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.quest-complete {
+  color: seagreen;
+}
+
+.quest-in-progress {
+  color: royalblue;
+}
+
+.quest-unstarted {
+  color: #666;
+}
+
+#skill-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#skill-menu button {
+  margin: 6px 0;
+  width: 100%;
+  text-align: left;
+}
+
+#levelup-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#levelup-menu button {
+  margin: 6px 0;
+  width: 100%;
+  text-align: left;
+}
+
+.hp-fill.low {
+  background-color: var(--color-hp-low);
+  animation: blink 1s infinite;
+}
+
+#extra-menu {
+  transition: all 0.2s ease;
+}
+
+.close-button {
+  width: auto;
+  text-align: center;
+  display: inline-block;
+  margin-top: 12px;
+}
+
+.modal-footer {
+  margin-top: 16px;
+  text-align: center;
+}
+
+#stat-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}

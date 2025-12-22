@@ -55,7 +55,8 @@ export function showInventoryMenu() {
 		const rarityKey = rarityMap[item.rarity] || "common";
 
 		// 左側：アイテム名
-		const fullText = `${label}${item.name}（${stat}）`;
+		const upgradeLabel = item.upgradeCount ? `+${item.upgradeCount}` : "";
+		const fullText = `${label}${item.name}${upgradeLabel}（${stat}）`;
 		const info = document.createElement("span");
 		info.classList.add("item-label");
 		info.textContent = fullText;
@@ -96,31 +97,107 @@ export function showInventoryMenu() {
 		};
 		buttonGroup.appendChild(dropBtn);
 
-		const sameCount = list.filter(i => i.name === item.name).length;
-		if (sameCount >= 2) {
+		if (isEquipped) {
+			const unequipBtn = document.createElement("button");
+			unequipBtn.textContent = "外す";
+			unequipBtn.classList.add("button", "small-button", "gray");
+
+			unequipBtn.onclick = () => {
+				if (type === "weapon") {
+					player.weapon = null;
+				} else {
+					player.armor = null;
+				}
+				updateLog(`『${item.name}』を外した`, "info");
+				updateStatus();
+				showInventoryMenu();
+			};
+
+			buttonGroup.appendChild(unequipBtn);
+		}
+
+		const sameCount = list.filter(i =>
+			i.name === item.name &&
+			!isSameItem(player.weapon, i) &&
+			!isSameItem(player.armor, i)
+		).length;
+		if (sameCount >= 2 && !isEquipped) {
 			const combineBtn = document.createElement("button");
 			combineBtn.textContent = `合成（${sameCount}）`;
 			combineBtn.classList.add("button", "small-button");
 			combineBtn.onclick = () => {
+				const upgradeLimit = 5;
+				const currentCount = item.upgradeCount || 0;
+
+				if (currentCount >= upgradeLimit) {
+					updateLog(`⚠️ ${item.name} はこれ以上合成できません（最大+${upgradeLimit}）`, "warning");
+					return;
+				}
+
+				// 🔒 装備中を除いた素材を抽出
+				const availableMaterials = list.filter(i =>
+					i.name === item.name &&
+					!isSameItem(player.weapon, i) &&
+					!isSameItem(player.armor, i)
+				);
+
+				if (availableMaterials.length < 2) {
+					updateLog(`⚠️ 合成には同じ装備が2つ以上必要です（装備中のものは使えません）`, "warning");
+					return;
+				}
+
+				// 🎲 失敗判定
+				const failureRate = Math.min(0.1 * currentCount, 0.5);
+				if (Math.random() < failureRate) {
+					// 合成失敗：素材2つ削除
+					let removed = 0;
+					player.inventory[type + "s"] = list.filter(i => {
+						if (
+							i.name === item.name &&
+							!isSameItem(player.weapon, i) &&
+							!isSameItem(player.armor, i) &&
+							removed < 2
+						) {
+							removed++;
+							return false;
+						}
+						return true;
+					});
+					updateLog(`💥 合成失敗！${item.name} は壊れてしまった…`, "error");
+					updateStatus();
+					refreshStatusScreen();
+					showInventoryMenu();
+					return;
+				}
+
+				// 合成成功：素材2つ削除＋強化装備作成
 				let removed = 0;
 				player.inventory[type + "s"] = list.filter(i => {
-					if (i.name === item.name && removed < 2) {
+					if (
+						i.name === item.name &&
+						!isSameItem(player.weapon, i) &&
+						!isSameItem(player.armor, i) &&
+						removed < 2
+					) {
 						removed++;
 						return false;
 					}
 					return true;
 				});
+
 				const upgraded = {
 					...item,
 					name: item.name + "＋",
 					rarity: Math.min((item.rarity || 1) + 1, 5),
-					id: crypto.randomUUID?.() || Math.random().toString(36).slice(2), // ← これを追加！
+					upgradeCount: currentCount + 1,
+					id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
 				};
+
 				if (type === "weapon") upgraded.attack += 1;
 				else upgraded.defense += 1;
 
 				player.inventory[type + "s"].push(upgraded);
-				updateLog(`${item.name} を合成して ${upgraded.name} を作った！`, "info");
+				updateLog(`✨ 合成成功！${upgraded.name}（+${upgraded.upgradeCount}）を作成！`, "success");
 				updateStatus();
 				refreshStatusScreen();
 				showInventoryMenu();

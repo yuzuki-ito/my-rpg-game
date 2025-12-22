@@ -29,16 +29,27 @@ function openSkillMenu() {
 		skills.forEach(skill => {
 			const btn = document.createElement("button");
 			btn.classList.add("button");
-			btn.textContent = `${skill.name}（MP${skill.mpCost}） - ${skill.description}`;
+
+			// 🔍 クールダウン状態を取得
+			const cd = player.skillCooldowns?.[skill.id] ?? 0;
+			const isCooling = cd > 0;
+
+			// 🔤 ボタンのラベルを変更
+			const cdLabel = isCooling ? `（CD:${cd}）` : "";
+			btn.textContent = `${skill.name}${cdLabel}（MP${skill.mpCost}） - ${skill.description}`;
 
 			if (!inBattle) {
-				// 戦闘外：使用不可（閲覧のみ）
 				btn.disabled = true;
 				btn.classList.add("unavailable");
+			} else if (isCooling) {
+				// 🔒 クールダウン中：使用不可
+				btn.disabled = true;
+				btn.classList.add("unavailable");
+				btn.title = `あと ${cd} ターンで使用可能`;
 			} else if (player.mp < skill.mpCost) {
-				// MP不足：使用不可
 				btn.disabled = true;
 				btn.classList.add("unavailable");
+				btn.title = "MPが足りません";
 			} else {
 				// 使用可能
 				btn.onclick = () => {

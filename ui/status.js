@@ -8,7 +8,7 @@ export function updateStatus() {
 
 	const hpPercent = Math.floor((player.hp / player.maxHp) * 100);
 	const mpPercent = Math.floor((player.mp / player.maxMp) * 100);
-	const magic = getTotalStat(player.baseMagic, player.magicBonus, player.weapon?.magic || 0);
+	//const magic = getTotalStat(player.baseMagic, player.magicBonus, player.weapon?.magic || 0);
 
 	status.innerHTML =
 		`
@@ -27,6 +27,7 @@ export function updateStatus() {
 	if (hpFill) {
 		hpFill.classList.toggle("low", hpPercent < 30);
 	}
+
 }
 
 // ステータス画面の表示と補助関数

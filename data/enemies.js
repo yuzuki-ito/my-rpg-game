@@ -47,7 +47,7 @@ export const enemyPool = [
 			{
 				type: "weapon",
 				item: items.sharpSword,
-				chance: 0.3
+				chance: 0.4
 			}
 		],
 		skills: [
@@ -91,14 +91,14 @@ export const enemyPool = [
 		name: "ドラゴン",
 		type: "boss",
 		spawnRate: 0.0,
-		baseLevel: 10,
+		baseLevel: 15,
 		rarity: "epic",
-		hp: 300,
-		baseAttack: 30,
+		hp: 350,
+		baseAttack: 35,
 		defense: 15,
-		baseSpeed: 10,
+		baseSpeed: 15,
 		baseAccuracy: 100,
-		baseCrit: 10,
+		baseCrit: 15,
 		exp: 100,
 		image: "images/dragon.png",
 		dropTable: [
@@ -121,5 +121,48 @@ export const enemyPool = [
 			}
 		],
 		onDefeatId: "dragonDefeat"
+	},
+	{
+		id: "awakenedDragon",
+		name: "覚醒ドラゴン",
+		type: "boss",
+		spawnRate: 0.0,
+		baseLevel: 30,
+		rarity: "legendary",
+		hp: 750,
+		baseAttack: 75,
+		defense: 45,
+		baseSpeed: 45,
+		baseAccuracy: 100,
+		baseCrit: 45,
+		exp: 200,
+		image: "images/awakened_dragon.png",
+		dropTable: [
+			{ type: "armor", item: items.dragonScaleCloak, chance: 0.3 },
+			{ type: "weapon", item: items.dragonFangBlade, chance: 0.1 }
+		],
+		skills: [
+			{ name: "灼熱の咆哮", effectId: "infernoRoar", chance: 0.5 }
+		],
+		onDefeatId: "awakenedDragonDefeat"
+	},
+	{
+		id: "feralDragon",
+		name: "凶暴なドラゴン",
+		type: "boss",
+		spawnRate: 0.0,
+		baseLevel: 12,
+		rarity: "epic",
+		hp: 400,
+		baseAttack: 40,
+		defense: 18,
+		baseSpeed: 18,
+		baseAccuracy: 100,
+		baseCrit: 18,
+		exp: 150,
+		image: "images/feral_dragon.png",
+		dropTable: [], // 通常ドロップなし
+		onDefeatId: "feralDragonDefeat"
 	}
+
 ];

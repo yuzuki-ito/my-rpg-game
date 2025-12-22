@@ -11,7 +11,7 @@ export const skillTree = {
 				name: "エンバー",
 				requiredLevel: 1,
 				requires: null,
-				cost: 1,
+				cost: 2,
 				mpCost: 3,
 				canMiss: false,
 				targetType: "enemy",
@@ -20,43 +20,45 @@ export const skillTree = {
 				scaling: "magic",
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.0 + player.level * 1.2 + Math.random() * 3);
+					const damage = Math.floor(magic * 1.5 + player.level * 0.2 + Math.random() * 1.1);
 					return { type: "damage", value: damage, element: "fire" };
 				}
 			},
 			{
 				id: "flameLance",
 				name: "フレイムランス",
-				requiredLevel: 6,
+				requiredLevel: 10,
 				requires: "ember",
-				cost: 2,
-				mpCost: 7,
+				cost: 4,
+				mpCost: 15,
 				canMiss: false,
 				targetType: "enemy",
 				description: "炎の槍で敵単体を貫く",
 				ignoreDefense: true,
 				scaling: "magic",
+				cooldown: 5,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.6 + player.level * 2 + Math.random() * 5);
+					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
 					return { type: "damage", value: damage, element: "fire" };
 				}
 			},
 			{
 				id: "infernalEdge",
 				name: "インフェルナルエッジ",
-				requiredLevel: 13,
+				requiredLevel: 20,
 				requires: "flameLance",
-				cost: 3,
-				mpCost: 12,
+				cost: 8,
+				mpCost: 30,
 				canMiss: false,
 				targetType: "enemy",
 				description: "灼熱の刃で敵単体に壊滅的なダメージを与える",
 				ignoreDefense: true,
 				scaling: "magic",
+				cooldown: 10,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 2.2 + player.level * 3 + Math.random() * 8);
+					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
 					return { type: "damage", value: damage, element: "fire" };
 				}
 			}
@@ -70,7 +72,7 @@ export const skillTree = {
 				name: "アクアショット",
 				requiredLevel: 2,
 				requires: null,
-				cost: 1,
+				cost: 2,
 				mpCost: 3,
 				canMiss: false,
 				targetType: "enemy",
@@ -79,43 +81,45 @@ export const skillTree = {
 				scaling: "magic",
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.0 + player.level * 1.2 + Math.random() * 3);
+					const damage = Math.floor(magic * 1.5 + player.level * 0.2 + Math.random() * 1.1);
 					return { type: "damage", value: damage, element: "water" };
 				}
 			},
 			{
 				id: "streamLance",
 				name: "ストリームランス",
-				requiredLevel: 7,
+				requiredLevel: 11,
 				requires: "aquaShot",
-				cost: 2,
-				mpCost: 7,
+				cost: 4,
+				mpCost: 15,
 				canMiss: false,
 				targetType: "enemy",
 				description: "水流の槍で敵単体を貫く",
 				ignoreDefense: false,
 				scaling: "magic",
+				cooldown: 5,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.5 + player.level * 2 + Math.random() * 5);
+					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
 					return { type: "damage", value: damage, element: "water" };
 				}
 			},
 			{
 				id: "aquaBurst",
 				name: "アクアバースト",
-				requiredLevel: 14,
+				requiredLevel: 22,
 				requires: "streamLance",
-				cost: 3,
-				mpCost: 12,
+				cost: 8,
+				mpCost: 30,
 				canMiss: false,
 				targetType: "enemy",
 				description: "高圧の水流で敵単体に大ダメージを与える",
 				ignoreDefense: false,
 				scaling: "magic",
+				cooldown: 10,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 2.0 + player.level * 3 + Math.random() * 8);
+					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
 					return { type: "damage", value: damage, element: "water" };
 				}
 			}
@@ -129,7 +133,7 @@ export const skillTree = {
 				name: "ウィンドカッター",
 				requiredLevel: 2,
 				requires: null,
-				cost: 1,
+				cost: 2,
 				mpCost: 3,
 				canMiss: true,
 				targetType: "enemy",
@@ -138,43 +142,45 @@ export const skillTree = {
 				scaling: "magic",
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.0 + player.level * 1.2 + Math.random() * 4);
+					const damage = Math.floor(magic * 1.5 + player.level * 0.2 + Math.random() * 1.1);
 					return { type: "damage", value: damage, element: "wind" };
 				}
 			},
 			{
 				id: "galeThrust",
 				name: "ゲイルスラスト",
-				requiredLevel: 7,
+				requiredLevel: 12,
 				requires: "windCutter",
-				cost: 2,
-				mpCost: 7,
+				cost: 4,
+				mpCost: 15,
 				canMiss: true,
 				targetType: "enemy",
 				description: "突風の一撃で敵単体に強力なダメージを与える",
 				ignoreDefense: false,
 				scaling: "magic",
+				cooldown: 5,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.5 + player.level * 2 + Math.random() * 6);
+					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
 					return { type: "damage", value: damage, element: "wind" };
 				}
 			},
 			{
 				id: "skyRend",
 				name: "スカイレンド",
-				requiredLevel: 14,
+				requiredLevel: 21,
 				requires: "galeThrust",
-				cost: 3,
-				mpCost: 12,
+				cost: 8,
+				mpCost: 30,
 				canMiss: false,
 				targetType: "enemy",
 				description: "空を裂く風で敵単体に壊滅的なダメージを与える",
 				ignoreDefense: false,
 				scaling: "magic",
+				cooldown: 10,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 2.0 + player.level * 3 + Math.random() * 10);
+					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
 					return { type: "damage", value: damage, element: "wind" };
 				}
 			}
@@ -188,7 +194,7 @@ export const skillTree = {
 				name: "ライトアロー",
 				requiredLevel: 3,
 				requires: null,
-				cost: 1,
+				cost: 3,
 				mpCost: 4,
 				canMiss: false,
 				targetType: "enemy",
@@ -197,43 +203,45 @@ export const skillTree = {
 				scaling: "magic",
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.0 + player.level * 1.5 + Math.random() * 4);
+					const damage = Math.floor(magic * 1.5 + player.level * 0.2 + Math.random() * 1.1);
 					return { type: "damage", value: damage, element: "light" };
 				}
 			},
 			{
 				id: "radiantBlade",
 				name: "ラディアントブレード",
-				requiredLevel: 9,
+				requiredLevel: 14,
 				requires: "lightArrow",
-				cost: 2,
-				mpCost: 8,
+				cost: 6,
+				mpCost: 20,
 				canMiss: false,
 				targetType: "enemy",
 				description: "まばゆい光の刃で敵単体を斬り裂く",
 				ignoreDefense: true,
 				scaling: "magic",
+				cooldown: 5,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.6 + player.level * 2 + Math.random() * 6);
+					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
 					return { type: "damage", value: damage, element: "light" };
 				}
 			},
 			{
 				id: "divineStrike",
 				name: "ディバインストライク",
-				requiredLevel: 16,
+				requiredLevel: 22,
 				requires: "radiantBlade",
-				cost: 3,
-				mpCost: 14,
+				cost: 9,
+				mpCost: 40,
 				canMiss: false,
 				targetType: "enemy",
 				description: "神聖な光で敵単体に壊滅的なダメージを与える",
 				ignoreDefense: true,
 				scaling: "magic",
+				cooldown: 10,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 2.3 + player.level * 3 + Math.random() * 10);
+					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
 					return { type: "damage", value: damage, element: "light" };
 				}
 			}
@@ -247,7 +255,7 @@ export const skillTree = {
 				name: "ダーククロー",
 				requiredLevel: 3,
 				requires: null,
-				cost: 1,
+				cost: 3,
 				mpCost: 4,
 				canMiss: true,
 				targetType: "enemy",
@@ -256,7 +264,7 @@ export const skillTree = {
 				scaling: "magic",
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.0 + player.level * 1.5 + Math.random() * 4);
+					const damage = Math.floor(magic * 1.5 + player.level * 0.2 + Math.random() * 1.1);
 					return { type: "damage", value: damage, element: "dark" };
 				}
 			},
@@ -265,34 +273,36 @@ export const skillTree = {
 				name: "ヴォイドスパイク",
 				requiredLevel: 8,
 				requires: "darkClaw",
-				cost: 2,
-				mpCost: 8,
+				cost: 6,
+				mpCost: 20,
 				canMiss: true,
 				targetType: "enemy",
 				description: "虚無の槍で敵単体を貫く強力な闇属性攻撃",
 				ignoreDefense: true,
 				scaling: "magic",
+				cooldown: 5,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 1.5 + player.level * 2 + Math.random() * 6);
+					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
 					return { type: "damage", value: damage, element: "dark" };
 				}
 			},
 			{
 				id: "abyssRend",
 				name: "アビスレンド",
-				requiredLevel: 15,
+				requiredLevel: 22,
 				requires: "voidSpike",
-				cost: 3,
-				mpCost: 14,
+				cost: 9,
+				mpCost: 40,
 				canMiss: false,
 				targetType: "enemy",
 				description: "深淵の力で敵単体に壊滅的な闇属性ダメージを与える",
 				ignoreDefense: true,
 				scaling: "magic",
+				cooldown: 10,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
-					const damage = Math.floor(magic * 2.2 + player.level * 3 + Math.random() * 10);
+					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
 					return { type: "damage", value: damage, element: "dark" };
 				}
 			}
@@ -307,42 +317,44 @@ export const skillTree = {
 				requiredLevel: 1,
 				requires: null,
 				cost: 1,
-				mpCost: 4,
+				mpCost: 5,
 				canMiss: false,
 				targetType: "self",
 				description: "HPを少し回復する",
 				effect: () => {
-					const recovery = Math.floor(player.level * 2 + 10); // 例：Lv5で20回復
+					const recovery = Math.floor(player.level * 1.5 + 10);
 					return { type: "heal", value: recovery };
 				}
 			},
 			{
 				id: "greaterHeal",
 				name: "グレーターヒール",
-				requiredLevel: 7,
+				requiredLevel: 14,
 				requires: "heal",
-				cost: 2,
-				mpCost: 8,
+				cost: 5,
+				mpCost: 25,
 				canMiss: false,
 				targetType: "self",
 				description: "HPを中程度回復する",
+				cooldown: 5,
 				effect: () => {
-					const recovery = Math.floor(player.level * 3 + 20); // 例：Lv10で50回復
+					const recovery = Math.floor(player.level * 2.5 + 20);
 					return { type: "heal", value: recovery };
 				}
 			},
 			{
 				id: "divineHeal",
 				name: "ディバインヒール",
-				requiredLevel: 14,
+				requiredLevel: 25,
 				requires: "greaterHeal",
-				cost: 3,
-				mpCost: 14,
+				cost: 10,
+				mpCost: 50,
 				canMiss: false,
 				targetType: "self",
 				description: "HPを大きく回復する",
+				cooldown: 10,
 				effect: () => {
-					const recovery = Math.floor(player.level * 4 + 40); // 例：Lv15で100回復
+					const recovery = Math.floor(player.level * 3.5 + 30);
 					return { type: "heal", value: recovery };
 				}
 			}

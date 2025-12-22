@@ -1,6 +1,5 @@
 import { updateLog } from "../ui/log.js";
 import { updateStatus } from "../ui/status.js";
-import { showStatUpgradeMenu } from "../ui/statUpgradeMenu.js";
 import { player } from "./player.js";
 import { getRandomInt } from "../utils/helpers.js";
 
@@ -11,13 +10,14 @@ const growthStats = [
 	{ key: "Speed", label: "すばやさ", min: 1, max: 2 },
 	{ key: "Crit", label: "会心率", min: 1, max: 2 },
 	{ key: "Accuracy", label: "命中率", min: 1, max: 2 },
-	{ key: "Recovery", label: "回復力", min: 1, max: 2 }
+	{ key: "Recovery", label: "回復力", min: 1, max: 2 },
+	{ key: "Magic", label: "魔力", min: 1, max: 2 },
 ];
 
 export function levelUp() {
 	player.level++;
 	player.exp = 0;
-	player.nextExp += 10;
+	player.nextExp = calculateNextExp(player.level);
 
 	// 固定成長
 	player.maxHp += 10;
@@ -48,5 +48,10 @@ export function levelUp() {
 	updateLog("🎁 SPを1獲得！", "success");
 
 	updateStatus();
-	showStatUpgradeMenu();
+}
+
+// レベルに応じて必要経験値を計算する関数
+function calculateNextExp(level) {
+	// 例：Lv1→15, Lv2→30, Lv3→50, Lv4→75, Lv5→105...
+	return Math.floor(20 + level ** 1.5 * 5);
 }

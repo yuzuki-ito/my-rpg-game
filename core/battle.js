@@ -14,6 +14,7 @@ import { getRandomInt } from "../utils/helpers.js";
 import { skillEffects } from "../data/skillEffects.js";
 import { enableBattleControls } from "../ui/battleUI.js"; // ← UI側に定義した場合
 import { createItem } from "../utils/helpers.js"; // すでにインポートされていればOK
+import { defeatHandlers } from "./defeatHandlers.js";
 
 // 戦闘状態の管理に関係する変数
 let inBattle = false;
@@ -85,13 +86,13 @@ export function generateEnemy(level, options = {}) {
 	base.name = base.type === "rare" ? `${base.name}（レア）` : base.name;
 	base.name += ` Lv${targetLevel}`;
 
-	base.hp += levelDiff * 5;
-	base.baseAttack += Math.floor(levelDiff * 1.2);
-	base.defense += Math.floor(levelDiff * 0.8);
-	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.3);
-	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.2);
+	base.hp += levelDiff * 6;
+	base.baseAttack += Math.floor(levelDiff * 1.3);
+	base.defense += Math.floor(levelDiff * 0.9);
+	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.4);
+	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.3);
 	base.baseAccuracy ??= base.accuracy ?? 100;
-	base.exp += levelDiff * 5;
+	base.exp = Math.floor(5 + targetLevel ** 1.1); // 例：レベルに応じて非線形に増加
 	// 旧プロパティにコピー（互換性のため）
 	base.attack = base.baseAttack;
 	base.accuracy = base.baseAccuracy;
@@ -123,6 +124,8 @@ export function battle(enemyTemplate) {
 	playerTurn = false;
 
 	player.potionUsedThisTurn = false; // ← 戦闘開始時にリセット（念のため）
+	// 🔧 クールダウンをリセット（ここが確実！）
+	player.skillCooldowns = {};
 
 	announceEnemyAppearance(currentEnemy);
 	showEnemyImage(currentEnemy.image);
@@ -229,20 +232,32 @@ export function attack() {
 
 // スキル使用処理（攻撃 or 回復）
 export function castSkill(id) {
+	console.log("現在のクールダウン状態:", JSON.stringify(player.skillCooldowns));
+
 	if (!inBattle) return updateLog("スキルは戦闘中にしか使えないよ！");
 	if (!playerTurn) return updateLog("今は相手のターンだよ！");
 	if (player.hp <= 0) return updateLog("気絶していてスキルを使えない…！");
 
-	playerTurn = false;
 	const skill = getLearnedSkills().find(s => s.id === id);
-
 	if (!skill) return updateLog(`そのスキルはまだ習得していないか、使えないスキルです！`);
+
+	// 🔒 クールダウン中かチェック
+	if (player.skillCooldowns?.[id] > 0) {
+		return updateLog(`${skill.name} はまだ使えない！（残り${player.skillCooldowns[id]}ターン）`, "warning");
+	}
+
 	if (player.mp < skill.mpCost) return updateLog("MPが足りない！", "warning");
 
+	playerTurn = false;
 	player.mp -= skill.mpCost;
 	updateLog(`🌀 ${skill.name} を使用！（MP -${skill.mpCost}）`, "skill");
 
-	// 命中判定（canMiss が true のとき）
+	// 🔁 クールダウンを設定
+	if (skill.cooldown) {
+		player.skillCooldowns[id] = skill.cooldown;
+	}
+
+	// 命中判定
 	const accuracy = getTotalStat(player.baseAccuracy, player.accuracyBonus, player.weapon?.accuracy || 0);
 	const enemySpeed = getTotalStat(currentEnemy.baseSpeed, currentEnemy.speedBonus);
 	if (skill.canMiss && !didHit(accuracy, enemySpeed)) {
@@ -270,18 +285,15 @@ export function castSkill(id) {
 		return;
 	}
 
-	// 敵が先手だった場合、すでに行動済みなのでターン終了処理は不要
 	if (playerTurn) {
-		endPlayerTurn(); // ← プレイヤーが先手のときだけ呼ぶ！
+		endPlayerTurn();
 	} else {
-		// 敵が先手だった場合、次のターンは自動で始まるので何もしない
 		playerTurn = true;
 		player.potionUsedThisTurn = false;
 		const attackBtn = document.querySelector('button[data-action="attack"]');
 		if (attackBtn) attackBtn.disabled = false;
 		attackLocked = false;
 	}
-
 }
 
 // 命中率計算処理
@@ -299,17 +311,22 @@ export function handleEnemyDefeat() {
 
 	updateLog(`${currentEnemy.name} をたおした！`, "success");
 	player.exp += currentEnemy.exp;
+	updateLog(`経験値 +${currentEnemy.exp}`, "success");
 
 	if (currentEnemy.drop) {
 		const roll = Math.random();
 		if (roll < currentEnemy.drop.chance) {
 			const drop = currentEnemy.drop;
-			const newItem = createItem(drop.item); // ← ここでユニークID付きに！
-			obtainEquipment(drop.type, newItem); // ← 複製したアイテムを渡す！
-			// 自動装備はしない！
+			const newItem = createItem(drop.item);
+			obtainEquipment(drop.type, newItem);
 			updateLog(`${drop.type === "weapon" ? "🗡️" : "🛡️"} ${drop.item.name} を手に入れた！（未装備）`, "item");
 			updateLog("📦 装備メニューから装備できます！", "item");
 		}
+	}
+
+	// 🔽 defeatHandlers の呼び出しをここに追加！
+	if (currentEnemy.onDefeatId && defeatHandlers[currentEnemy.onDefeatId]) {
+		defeatHandlers[currentEnemy.onDefeatId]();
 	}
 
 	if (player.exp >= player.nextExp) {
@@ -321,8 +338,8 @@ export function handleEnemyDefeat() {
 	showEnemyImage(null);
 	playBGM("field");
 	updateStatus();
-
-	attackLocked = false; // ← 戦闘終了時にも解除！
+	player.skillCooldowns = {};
+	attackLocked = false;
 }
 
 // 敵の攻撃処理
@@ -369,6 +386,7 @@ export function enemyAttack(enemy) {
 		updateLog("💡または『F5キー』でゲームを最初からやり直せるよ！", "info");
 		currentEnemy = null;
 		inBattle = false;
+		player.skillCooldowns = {}
 		showEnemyImage(null);
 		playBGM("field");
 	} else {
@@ -432,6 +450,7 @@ export function enemyUseSkill(enemy) {
 export function endPlayerTurn() {
 	playerTurn = false;
 	player.potionUsedThisTurn = false;
+	reduceSkillCooldowns();
 	setTimeout(() => {
 		enemyAttack(currentEnemy);
 		playerTurn = true;
@@ -444,9 +463,22 @@ export function endPlayerTurn() {
 	}, 500);
 }
 
+// スキルクールダウン用
+function reduceSkillCooldowns() {
+	console.log("プレイヤーのターン終了-スキルクールダウン");
+	for (const skillId in player.skillCooldowns) {
+		if (player.skillCooldowns[skillId] > 0) {
+			player.skillCooldowns[skillId]--;
+		}
+	}
+}
+
 // 敵のターン終了処理
 function endEnemyTurn() {
 	console.log("🧟‍♂️ 敵のターン開始！");
+
+	// 🔧 クールダウンを減らす（ここを追加！）
+	reduceSkillCooldowns();
 
 	setTimeout(() => {
 		if (isBattleOver()) return;

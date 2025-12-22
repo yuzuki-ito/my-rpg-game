@@ -12,6 +12,7 @@ import { findItem } from "./items.js";
 import { questList } from "../data/quests.js";
 import { player } from "./player.js";
 import { showDialogue } from "../ui/dialog.js";
+import { defeatHandlers } from "./defeatHandlers.js";
 
 // ====== マップ描画処理 マルチマップ対応======
 export function drawMap() {
@@ -238,6 +239,7 @@ export function handleBossTile(player) {
 		boss.critRate = 1.0;
 		boss.critMultiplier = 3;
 		boss.tags = [...(boss.tags || []), "berserk"];
+		boss.onDefeatId = "feralDragonDefeat"; // ← これを追加！
 		updateLog("🔥 狂気に満ちたドラゴンが襲いかかってきた！", "danger");
 	}
 
@@ -252,16 +254,23 @@ export function handleBossTile(player) {
 		boss.critRate = 0.5;
 		boss.critMultiplier = 3;
 		boss.tags = [...(boss.tags || []), "berserk"];
+		boss.onDefeatId = "awakenedDragonDefeat"; // ← これを追加！
 		updateLog("🔥 覚醒したドラゴンが襲いかかってきた！", "danger");
 	}
 
 	battle(boss, {
 		onDefeat: () => {
+			// クエスト進行
 			if (!quest.completed) {
 				quest.progress = 1;
 				if (questList.bossBattle.autoComplete) {
 					completeQuest("bossBattle");
 				}
+			}
+
+			// 特別な defeatHandler があれば呼び出す
+			if (boss.onDefeatId && defeatHandlers[boss.onDefeatId]) {
+				defeatHandlers[boss.onDefeatId]();
 			}
 		}
 	});

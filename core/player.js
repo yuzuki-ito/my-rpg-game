@@ -2,9 +2,13 @@ import { initializeQuests } from "./quest.js";
 import { drawMap } from "./map.js";
 import { updateStatus } from "../ui/status.js";
 import { generateMaps } from "../data/mapData.js";
+import { weaponData } from "../data/item.js";
 
 // プレイヤーの状態を保持（参照は固定）
 export let player = {};
+
+// 初期装備のIDを指定
+const STARTING_ITEM_IDS = ["woodenStick"];
 
 // 初期ステータス定義（再利用可能）
 const defaultPlayerData = {
@@ -19,7 +23,7 @@ const defaultPlayerData = {
 
 	// ステータス（基本＋補正）
 	baseAttack: 5, attackBonus: 0,
-	baseDefense: 2, defenseBonus: 0,
+	baseDefense: 3, defenseBonus: 0,
 	baseSpeed: 5, speedBonus: 0,
 	baseAccuracy: 90, accuracyBonus: 0,
 	baseCrit: 5, critBonus: 0,
@@ -34,13 +38,8 @@ const defaultPlayerData = {
 		learned: [],     // 習得済みスキルID
 		points: 0        // スキルポイント
 	},
-	weapon: {
-		name: "木の棒",
-		attack: 2,
-		accuracy: 5,
-		critRate: 0.03,
-		critMultiplier: 1.5
-	},
+	skillCooldowns: {}, // ← ここを追加！
+	weapon: null,
 	armor: null,
 
 	// 位置・進行状況（マップID付き）
@@ -50,7 +49,7 @@ const defaultPlayerData = {
 		y: 0
 	},
 	inventory: {
-		weapons: [],
+		weapons: STARTING_ITEM_IDS.map(id => ({ ...weaponData[id] })),
 		armors: []
 	},
 	quests: {},
@@ -79,6 +78,7 @@ const defaultPlayerData = {
  */
 export function initPlayer() {
 	Object.assign(player, JSON.parse(JSON.stringify(defaultPlayerData)));
+	player.weapon = player.inventory.weapons[0] || null;
 }
 
 /**

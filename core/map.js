@@ -3,7 +3,7 @@ import { mapData, mapSize } from "../data/mapData.js";
 import { mapMeta } from "../data/mapMeta.js";
 import { TILE_INFO } from "../data/tileTypes.js";
 import { villagers } from "../data/villagers.js";
-import { talkToVillagerById, handleGatheringTile } from "./quest.js";
+import { talkToVillagerById, handleGatheringTile, getVillagerAt, startQuest, completeQuest } from "./quest.js";
 import { updateLog } from "../ui/log.js";
 import { updateStatus } from "../ui/status.js";
 import { playBGM } from "./audio.js";
@@ -11,6 +11,7 @@ import { generateEnemy, battle, getInBattle } from "./battle.js";
 import { findItem } from "./items.js";
 import { questList } from "../data/quests.js";
 import { player } from "./player.js";
+import { showDialogue } from "../ui/dialog.js";
 
 // ====== マップ描画処理 マルチマップ対応======
 export function drawMap() {
@@ -19,6 +20,9 @@ export function drawMap() {
 		console.warn("#map が見つからないよ！");
 		return;
 	}
+	console.log("現在のマップID:", player.location.mapId);
+	console.log("mapData:", mapData);
+	console.log("現在のマップ:", mapData[player.location.mapId]);
 
 	const currentMap = mapData[player.location.mapId];
 	if (!currentMap) {
@@ -29,7 +33,22 @@ export function drawMap() {
 	let output = "";
 	for (let y = 0; y < currentMap.length; y++) {
 		for (let x = 0; x < currentMap[y].length; x++) {
-			output += (player.location.x === x && player.location.y === y) ? "🧍" : currentMap[y][x];
+			if (player.location.x === x && player.location.y === y) {
+				output += "🧍";
+				continue;
+			}
+
+			const villagerHere = Object.values(villagers).find(v =>
+				v.location.mapId === player.location.mapId &&
+				v.location.x === x &&
+				v.location.y === y
+			);
+
+			if (villagerHere) {
+				output += villagerHere.icon || "👤"; // ← 村人ごとのアイコンを使用！
+			} else {
+				output += currentMap[y][x];
+			}
 		}
 		output += "\n";
 	}
@@ -87,42 +106,82 @@ function handleRandomTile() {
 }
 
 // ====== イベント処理 ======
-export function handleVillageTile() {
-	let targetVillager = null;
+export function handleVillageTile(player) {
+	console.log("現在位置:", player.location.mapId, player.location.x, player.location.y);
+	const villager = getVillagerAt(player.location.mapId, player.location.x, player.location.y);
+	console.log("見つかった村人:", villager);
 
-	for (const id in villagers) {
-		const villager = villagers[id];
-		const questKey = villager.questKey;
-		const questDef = questList[questKey];
-		const questState = player.quests[questKey];
+	if (!villager) {
+		updateLog("誰もいないようだ。");
+		return;
+	}
 
-		if (!questDef) continue;
+	const questKey = villager.questKey;
+	const questDef = questList[questKey];
+	const questState = player.quests[questKey];
+	const prereq = questDef?.prerequisite;
+	const prereqMet = !prereq || player.quests[prereq]?.completed;
+	const introText = typeof villager.dialogue.intro === "function" ? villager.dialogue.intro(questDef) : villager.dialogue.intro;
 
-		const prereq = questDef.prerequisite;
-		const prereqMet = !prereq || player.quests[prereq]?.completed;
+	console.log("クエスト:", questKey);
+	console.log("状態:", questState);
+	console.log("前提条件:", prereq, "→ 達成済み？", prereqMet);
 
-		// ✅ 未受注 or 進行中で、前提条件を満たしているクエストを対象にする
-		if ((!questState || !questState.completed) && prereqMet) {
-			targetVillager = id;
-			break;
+	if (!questDef) {
+		updateLog(`${villager.name}：「こんにちは。」`);
+		return;
+	}
+
+	console.log(player.quests.slimeHunt);
+
+	if ((!questState || (!questState.started && !questState.completed)) && prereqMet) {
+		showDialogue(
+			`${villager.name}：「${introText}」`,
+			["引き受ける", "断る"],
+			(choice) => {
+				if (choice === "引き受ける") {
+					startQuest(questKey);
+				} else {
+					updateLog(`${villager.name}：「そうかい…残念じゃ。」`);
+				}
+			}
+		);
+		return;
+	}
+	else if (!questState) {
+		updateLog(`${villager.name}：「今はまだ頼めないことがあるんじゃ…」`);
+	} else if (!questState.completed) {
+		if (questState.progress >= questDef.goal) {
+			completeQuest(questKey);
+			updateLog(`${villager.name}：「${villager.dialogue.completed}」`);
+			if (villager.dialogue.thanks) {
+				updateLog(`${villager.name}：「${villager.dialogue.thanks}」`);
+			}
+		} else {
+			const msg = typeof villager.dialogue.inProgress === "function"
+				? villager.dialogue.inProgress(questState)
+				: villager.dialogue.inProgress;
+			updateLog(`${villager.name}：「${msg}」`);
 		}
 	}
-
-	if (!targetVillager) {
-		updateLog("村には今、受けられるクエストがないようだ。");
-	} else {
-		talkToVillagerById(targetVillager);
+	else {
+		// 完了報酬などがあるならここで処理
+		completeQuest(questKey); // ← ここで正式に完了処理！
+		updateLog(`${villager.name}：「${villager.dialogue.completed}」`);
 	}
 
+	// 回復処理（必要なら）
 	if (player.hp < player.maxHp) {
 		player.hp = player.maxHp;
 		player.mp = player.maxMp;
 		updateLog("村で休んでHPとMPが全回復した！");
 		updateStatus();
 	}
-	playBGM(mapMeta.bgm || "field");
+
+	playBGM(mapMeta[player.location.mapId]?.bgm || "field");
 }
 
+// 薬草クエストの処理
 export function handleGrassTileEvent() {
 	updateLog("草むらに入った…");
 
@@ -141,16 +200,60 @@ export function handleGrassTileEvent() {
 	}
 }
 
+// ドラゴンのクエスト処理
 export function handleBossTile(player) {
 	const quest = player.quests?.bossBattle;
+	const hasStarted = quest?.started === true;
+	const isCompleted = quest?.completed === true;
+	let statuchangebossflg = false; // ボスのステータス変更用
 
-	if (!quest || !quest.started) {
-		updateLog("⚠️ 今はここに立ち入るべきではない気がする…");
-		return;
+	console.log("クエスト:", quest);
+	console.log("開始？:", hasStarted);
+	console.log("完了？:", isCompleted);
+
+	// クエスト完了済みでも戦えるが報酬なし
+	if (isCompleted) {
+		updateLog("💀 ドラゴンが再び現れた…だが報酬はもうない。", "warning");
+		statuchangebossflg = true;
+	}
+	console.log("ステータス変更？:", statuchangebossflg);
+
+	// クエスト未受注 or 未開始でも戦えるが報酬なし
+	if (!hasStarted && !isCompleted) {
+		updateLog("⚠️ クエストを受けていないため、討伐しても報酬は得られない…", "warning");
 	}
 
+	// ボス戦開始
 	updateLog("👹 ボス『ドラゴン』が現れた！");
 	const boss = generateEnemy(player.level, { forceType: "boss" });
+
+	// クエスト未受注 or 未開始 → 経験値を減らし、ステータスを強化
+	if (!hasStarted && !isCompleted) {
+		boss.exp = Math.floor(boss.exp * 0.1); // 経験値減少
+		// ステータス超強化（例：HP10倍、攻撃10倍、スキル追加など）クエスト未完了でクエストを受けていない時
+		boss.name = "狂暴なドラゴン";
+		boss.hp = Math.floor(boss.hp * 10);
+		boss.attack = Math.floor(boss.attack * 10);
+		boss.defense = Math.floor(boss.defense * 10);
+		boss.critRate = 1.0;
+		boss.critMultiplier = 3;
+		boss.tags = [...(boss.tags || []), "berserk"];
+		updateLog("🔥 狂気に満ちたドラゴンが襲いかかってきた！", "danger");
+	}
+
+	// クエスト完了済みで戦う
+	if (statuchangebossflg) {
+		boss.exp = Math.floor(boss.exp * 0.1); // 経験値減少
+		// ステータス超強化（例：HP1.5倍、攻撃1.5倍、スキル追加など）
+		boss.name = "覚醒したドラゴン";
+		boss.hp = Math.floor(boss.hp * 1.5);
+		boss.attack = Math.floor(boss.attack * 1.5);
+		boss.defense = Math.floor(boss.defense * 1.5);
+		boss.critRate = 0.5;
+		boss.critMultiplier = 3;
+		boss.tags = [...(boss.tags || []), "berserk"];
+		updateLog("🔥 覚醒したドラゴンが襲いかかってきた！", "danger");
+	}
 
 	battle(boss, {
 		onDefeat: () => {
@@ -163,5 +266,4 @@ export function handleBossTile(player) {
 		}
 	});
 }
-
 

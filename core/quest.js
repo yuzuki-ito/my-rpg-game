@@ -3,10 +3,11 @@ import { renderQuestList } from "../ui/questLog.js";
 import { questList } from "../data/quests.js";
 import { player } from "./player.js";
 import { updateStatus } from "../ui/status.js";
-import { addItemToInventory } from "./inventory.js";
+import { addItemToInventory, obtainEquipment } from "./inventory.js";
 import { showDialogue } from "../ui/dialog.js";
 import { villagers } from "../data/villagers.js";
 import { learnSkill } from "./skill.js";
+import { createItem } from "../utils/helpers.js"; // すでにインポートされていればOK
 
 // プレイヤーのクエスト状態を初期化（セーブデータに基づいて補完）
 export function initializeQuests() {
@@ -22,7 +23,9 @@ export function initializeQuests() {
 	}
 }
 
+// クエスト開始
 export function startQuest(key) {
+	console.log("startQuest 呼び出し:", key);
 	const def = questList[key];
 	if (!def) {
 		updateLog("⚠️ クエストが存在しません！", "warning");
@@ -37,40 +40,40 @@ export function startQuest(key) {
 
 	const quest = player.quests[key];
 
-	if (!quest || quest.started === undefined) {
-		// 初受注（新規 or started未定義）
-		player.quests[key] = {
-			started: true,
-			completed: quest?.completed || false,
-			progress: quest?.progress || 0
-		};
-		updateLog(`🆕 クエスト開始！『${def.title}』`, "quest");
-		if (def.description) {
-			updateLog(`📖 ${def.description}`);
-		}
-	} else if (!quest.started) {
-		// 中断していたクエストの再開
-		quest.started = true;
-		updateLog(`📝 クエスト再開！『${def.title}』`, "quest");
-	} else {
+	if (quest?.started) {
 		updateLog("⚠️ すでに開始済みのクエストです！", "warning");
+		return;
+	}
+
+	// 初受注（または未開始）
+	player.quests[key] = {
+		started: true,
+		completed: quest?.completed || false,
+		progress: quest?.progress || 0
+	};
+
+	updateLog(`🆕 クエスト開始！『${def.title}』`, "quest");
+	if (def.description) {
+		updateLog(`📖 ${def.description}`);
 	}
 
 	renderQuestList();
 }
 
+// クエスト完了処理
 export function completeQuest(key) {
 	const quest = player.quests[key];
 	const def = questList[key];
 
-	if (!quest || !def || quest.completed) return;
+	// 無効なクエスト or すでに完了している場合はスキップ
+	if (!quest || !def || !quest.started || quest.completed) return;
 
 	quest.completed = true;
 	quest.started = false;
 
 	updateLog(`🎉 クエスト『${def.title}』達成！`, "quest");
 
-	// 報酬が関数なら実行、オブジェクトなら共通処理
+	// 報酬処理
 	if (typeof def.reward === "function") {
 		def.reward();
 	} else if (typeof def.reward === "object") {
@@ -95,7 +98,7 @@ export function grantQuestReward(quest) {
 		updateLog(`💰 ゴールド +${reward.gold}`, "info");
 	}
 	if (reward.potions) {
-		player.potions += reward.potions;
+		player.potions = (player.potions || 0) + reward.potions;
 		updateLog(`🧪 ポーション ×${reward.potions}`, "info");
 	}
 	if (reward.maxHp) {
@@ -104,19 +107,30 @@ export function grantQuestReward(quest) {
 	}
 	if (reward.items) {
 		reward.items.forEach(item => {
-			addItemToInventory(item.name, item.quantity || 1);
-			updateLog(`🎁 ${item.name} ×${item.quantity || 1} を手に入れた！`, "item");
+			if (item.type === "weapon" || item.type === "armor") {
+				const newItem = createItem(item);
+				obtainEquipment(item.type, newItem);
+				updateLog(`${item.type === "weapon" ? "🗡️" : "🛡️"} ${item.name} を手に入れた！（未装備）`, "item");
+			} else {
+				const newItem = createItem(item); // ← ここでユニークID付きに！
+				addItemToInventory(newItem);
+				updateLog(`🎁 ${item.name} ×${item.quantity || 1} を手に入れた！`, "item");
+			}
 		});
 	}
 	if (reward.skill) {
-		const skill = learnSkill(reward.skill);
-		if (skill) {
-			updateLog(`📘 スキル『${skill.name}』を習得した！`, "skill");
-		}
+		const skills = Array.isArray(reward.skill) ? reward.skill : [reward.skill];
+		skills.forEach(id => {
+			const skill = learnSkill(id);
+			if (skill) {
+				updateLog(`📘 スキル『${skill.name}』を習得した！`, "skill");
+			}
+		});
 	}
 	updateStatus();
 }
 
+// クエスト進行度チェック
 export function updateQuestProgress(key, amount = 1) {
 	const quest = player.quests[key];
 	const def = questList[key];
@@ -139,6 +153,7 @@ export function updateQuestProgress(key, amount = 1) {
 	}
 }
 
+// クエスト完了処理
 export function checkQuestProgressOnKill(enemy) {
 	for (const key in player.quests) {
 		const quest = player.quests[key];
@@ -239,4 +254,17 @@ export function isQuestActive(key) {
 
 export function isQuestCompleted(key) {
 	return player.quests[key]?.completed;
+}
+
+// 現在位置にいる村人だけを対象にする
+export function getVillagerAt(mapId, x, y) {
+	console.log("全村人リスト:", villagers);
+	Object.values(villagers).forEach(v => {
+		console.log(`${v.name} の位置:`, v.location);
+	});
+	return Object.values(villagers).find(v =>
+		v.location.mapId === mapId &&
+		v.location.x === x &&
+		v.location.y === y
+	);
 }

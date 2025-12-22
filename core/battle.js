@@ -18,8 +18,9 @@ import { createItem } from "../utils/helpers.js"; // すでにインポートさ
 // 戦闘状態の管理に関係する変数
 let inBattle = false;
 let currentEnemy = null;
-export let playerTurn = true;
+let attackLocked = false;
 
+export let playerTurn = true;
 export function getInBattle() {
 	return inBattle;
 }
@@ -153,14 +154,27 @@ export function determineTurnOrder() {
 			if (isBattleOver()) return; // ← ここでもチェック！
 			playerTurn = true;
 			player.potionUsedThisTurn = false;
-			updateLog("あなたのターン！", "info");
+			//updateLog("あなたのターン！", "info");
 		}, 500);
 	}
 }
 
 // プレイヤーの通常攻撃処理
 export function attack() {
-	if (!inBattle || !playerTurn || player.hp <= 0) return;
+	if (attackLocked) return; // ← すでに押されてたら無視！
+	attackLocked = true;
+
+	const attackBtn = document.querySelector('button[data-action="attack"]');
+	if (attackBtn) attackBtn.disabled = true; // ← ここで即無効化！
+
+	if (!getInBattle() || !isPlayerTurn() || player.hp <= 0) {
+		// 状況によってログを出すかどうか分ける
+		if (!getInBattle()) return; // 戦闘終了後は静かに無視
+		if (!isPlayerTurn()) updateLog("⚠️ まだあなたのターンじゃないよ！");
+		else updateLog("⚠️ 攻撃はできない状態だよ！");
+		attackLocked = false;
+		return;
+	}
 
 	playerTurn = false;
 
@@ -253,9 +267,21 @@ export function castSkill(id) {
 
 	if (isBattleOver()) {
 		handleEnemyDefeat();
-	} else {
-		endPlayerTurn();
+		return;
 	}
+
+	// 敵が先手だった場合、すでに行動済みなのでターン終了処理は不要
+	if (playerTurn) {
+		endPlayerTurn(); // ← プレイヤーが先手のときだけ呼ぶ！
+	} else {
+		// 敵が先手だった場合、次のターンは自動で始まるので何もしない
+		playerTurn = true;
+		player.potionUsedThisTurn = false;
+		const attackBtn = document.querySelector('button[data-action="attack"]');
+		if (attackBtn) attackBtn.disabled = false;
+		attackLocked = false;
+	}
+
 }
 
 // 命中率計算処理
@@ -295,6 +321,8 @@ export function handleEnemyDefeat() {
 	showEnemyImage(null);
 	playBGM("field");
 	updateStatus();
+
+	attackLocked = false; // ← 戦闘終了時にも解除！
 }
 
 // 敵の攻撃処理
@@ -411,22 +439,31 @@ export function endPlayerTurn() {
 		// 攻撃ボタンを再有効化
 		const attackBtn = document.querySelector('button[data-action="attack"]');
 		if (attackBtn) attackBtn.disabled = false;
+
+		attackLocked = false; // ← ここでロック解除！
 	}, 500);
 }
 
 // 敵のターン終了処理
 function endEnemyTurn() {
+	console.log("🧟‍♂️ 敵のターン開始！");
+
 	setTimeout(() => {
 		if (isBattleOver()) return;
+
 		playerTurn = true;
 		player.potionUsedThisTurn = false;
-		updateLog("あなたのターン！", "info");
-		disableBattleControls(); //こうげきボタンを無効化
+		disableBattleControls(); // 一旦すべて無効化
+
 		updateStatus();
 
-		// 攻撃ボタンを再有効化
-		const attackBtn = document.querySelector('button[data-action="attack"]');
-		if (attackBtn) attackBtn.disabled = false;
+		// 少し待ってからボタンを有効化（演出のため）
+		setTimeout(() => {
+			if (isBattleOver()) return;
+			if (!playerTurn) return; // ← ここを追加！
+			const attackBtn = document.querySelector('button[data-action="attack"]');
+			if (attackBtn) attackBtn.disabled = false;
+		}, 300);
 	}, 500);
 }
 
@@ -464,7 +501,7 @@ function enemyNormalAttack(enemy) {
 
 // 終了チェック
 export function isBattleOver() {
-	return currentEnemy.hp <= 0;
+	return !inBattle || !currentEnemy || currentEnemy.hp <= 0 || player.hp <= 0;
 }
 
 // 攻撃ボタンを無効化
@@ -474,4 +511,14 @@ function disableBattleControls() {
 
 	const skillBtns = document.querySelectorAll(".skill-button");
 	skillBtns.forEach(btn => btn.disabled = true);
+}
+
+export function isPlayerTurn() {
+	return playerTurn;
+}
+export function isAttackLocked() {
+	return attackLocked;
+}
+export function setAttackLocked(value) {
+	attackLocked = value;
 }

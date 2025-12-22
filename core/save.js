@@ -5,6 +5,7 @@ import { resetUI } from "../ui/ui.js";
 import { playBGM } from "./audio.js";
 import { initializeQuests } from "./quest.js";
 import { player, setPlayerData } from "./player.js"; // setPlayerData を追加
+import { mapData } from "../data/mapData.js";
 
 const SAVE_KEY = "rpgSave";
 
@@ -44,7 +45,11 @@ export function loadGame() {
 		playBGM("field");
 
 		const date = new Date(parsed.timestamp);
-		updateLog(`📂 ${date.toLocaleString()} のデータをロードしました！`, "green");
+		updateLog(`📂 ${date.toLocaleString()} のデータをロードしました！`, "info");
+
+		console.log("現在のマップID:", player.location.mapId);
+		console.log("mapData に存在する？", mapData[player.location.mapId]);
+
 	} catch (err) {
 		console.warn("セーブデータの読み込みに失敗:", err);
 		updateLog("⚠️ セーブデータの読み込みに失敗しました！", "red");

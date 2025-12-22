@@ -78,8 +78,8 @@ export function rest() {
 		return;
 	}
 
-	const hpHeal = REST_HP_BASE + (player.recovery || 0);
-	const mpHeal = REST_MP_BASE + Math.floor((player.recovery || 0) / 2);
+	const hpHeal = REST_HP_BASE + Math.floor(player.baseRecovery * (0.5 + Math.random() * 0.2)); // 50〜70%
+	const mpHeal = REST_MP_BASE + Math.floor(player.baseRecovery * (0.5 + Math.random() * 0.1)); // 50〜60%
 
 	const actualHp = applyHealing(hpHeal);
 	const actualMp = applyMana(mpHeal);

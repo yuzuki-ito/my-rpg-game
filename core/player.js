@@ -1,6 +1,7 @@
 import { initializeQuests } from "./quest.js";
 import { drawMap } from "./map.js";
 import { updateStatus } from "../ui/status.js";
+import { generateMaps } from "../data/mapData.js";
 
 // プレイヤーの状態を保持（参照は固定）
 export let player = {};
@@ -48,7 +49,6 @@ const defaultPlayerData = {
 		x: 0,
 		y: 0
 	},
-
 	inventory: {
 		weapons: [],
 		armors: []
@@ -57,6 +57,7 @@ const defaultPlayerData = {
 	questStarted: false,
 	questCompleted: false,
 	slimeDefeated: 0,
+	returnPoint: null, // ← 追加！
 
 	// 行動制限
 	potionUsedThisTurn: false,
@@ -102,6 +103,7 @@ export function getPlayerData() {
 export function initGame() {
 	console.log("初期化開始！");
 	initPlayer();
+	generateMaps(player); // ← ここでマップを生成！
 	initializeQuests();
 	drawMap();
 	updateStatus();

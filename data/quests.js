@@ -38,7 +38,7 @@ export const questList = {
 		}
 	},
 
-	lostRelic: {
+	bossBattle: {
 		id: "bossBattle",
 		title: "ドラゴン討伐",
 		description: "森の奥に潜むドラゴンを倒そう！",
@@ -50,10 +50,7 @@ export const questList = {
 		repeatable: false,
 		reward: {
 			exp: 100,
-			gold: 200,
-			items: [
-				{ id: "dragonScale", name: "ドラゴンアーマー", quantity: 1 }
-			]
+			//gold: 200,
 		}
 	}
 

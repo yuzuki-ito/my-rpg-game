@@ -5,13 +5,14 @@ export const villagers = {
 		name: "村人のおじさん",
 		questKey: "slimeHunt",
 		location: {
-			mapId: "village",
-			x: 3,
+			mapId: "main",
+			x: 2,
 			y: 2
 		},
 		sprite: "npc_oldman.png",
+		icon: "🏠",
 		dialogue: {
-			intro: "スライムが増えて困ってるんだ…5体倒してくれないか？",
+			intro: (quest) => `スライムを${quest.goal}体倒してくれないか？`,
 			inProgress: (quest) => {
 				if (quest.progress >= 3) return "あと少しだ！頑張ってくれ！";
 				return "スライム退治、よろしく頼んだよ！";
@@ -25,19 +26,20 @@ export const villagers = {
 		name: "薬草好きの少女",
 		questKey: "herbGathering",
 		location: {
-			mapId: "village",
-			x: 5,
-			y: 1
+			mapId: "main",
+			x: 6,
+			y: 4
 		},
 		sprite: "npc_herb_girl.png",
+		icon: "🏠",
 		dialogue: {
-			intro: "薬草を7つ集めてきてくれない？",
+			intro: (quest) => `薬草を${quest.goal}つ集めてきてくれない？`,
 			inProgress: (quest) => {
 				if (quest.progress >= 5) return "あともうちょっとだね！";
 				return "薬草、まだかな〜？";
 			},
-			completed: "わぁ、ありがとう！",
-			thanks: "これでおばあちゃんの薬が作れるよ！"
+			completed: "これでおばあちゃんの薬が作れるよ！",
+			thanks: "わぁ、ありがとう！"
 		}
 	},
 	forestHermit: {
@@ -45,15 +47,16 @@ export const villagers = {
 		name: "森の隠者",
 		questKey: "bossBattle",
 		location: {
-			mapId: "deepForest",
-			x: 7,
-			y: 4
+			mapId: "main",
+			x: 4,
+			y: 6
 		},
 		sprite: "npc_hermit.png",
+		icon: "🏠",
 		dialogue: {
 			intro: "森の奥に潜むドラゴンを倒してくれんか？",
 			inProgress: "ドラゴンはまだ生きておる…",
-			completed: "おお、それじゃ！助かったぞ！",
+			completed: "おお！助かったぞ！",
 			thanks: "これは礼じゃ。受け取ってくれ。"
 		}
 	},

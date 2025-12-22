@@ -38,7 +38,36 @@ export const weaponData = {
         price: 999,
         icon: "⚔️",
         tags: ["legendary", "shiny"]
+    },
+    cursedDagger: {
+        id: "cursedDagger",
+        name: "呪われた短剣",
+        type: "weapon",
+        attack: 12,
+        accuracy: 20,
+        critRate: 0.4,
+        critMultiplier: 2,
+        rarity: "rare",
+        price: 120,
+        icon: "🗡️",
+        tags: ["cursed", "risky"],
+        description: "高いクリティカル率を持つが、装備中は最大HPが10%減少する"
+    },
+    frostBlade: {
+        id: "frostBlade",
+        name: "氷の刃",
+        type: "weapon",
+        attack: 18,
+        accuracy: 12,
+        critRate: 0.15,
+        critMultiplier: 2,
+        rarity: "rare",
+        price: 180,
+        icon: "❄️",
+        tags: ["ice", "elemental"],
+        description: "攻撃時に10%の確率で敵を凍結させる"
     }
+
 };
 
 // ====== 防具データ ======
@@ -72,7 +101,30 @@ export const armorData = {
         price: 300,
         icon: "🐉",
         tags: ["dragon", "rare"]
+    },
+    shadowCloak: {
+        id: "shadowCloak",
+        name: "影のマント",
+        type: "armor",
+        defense: 3,
+        rarity: "rare",
+        price: 150,
+        icon: "🕶️",
+        tags: ["evasion", "stealth"],
+        description: "回避率が10%上昇する"
+    },
+    holyArmor: {
+        id: "holyArmor",
+        name: "聖なる鎧",
+        type: "armor",
+        defense: 8,
+        rarity: "epic",
+        price: 400,
+        icon: "✨",
+        tags: ["holy", "resist"],
+        description: "闇属性のダメージを半減する"
     }
+
 };
 
 // ====== 消費アイテムデータ ======
@@ -98,7 +150,30 @@ export const consumableData = {
         price: 40,
         icon: "🔮",
         tags: ["magic", "healing"]
+    },
+    elixir: {
+        id: "elixir",
+        name: "エリクサー",
+        type: "consumable",
+        description: "HPとMPを完全に回復する",
+        effect: { type: "fullRestore" },
+        rarity: "legendary",
+        price: 300,
+        icon: "💎",
+        tags: ["healing", "rare"]
+    },
+    smokeBomb: {
+        id: "smokeBomb",
+        name: "スモークボム",
+        type: "consumable",
+        description: "戦闘から確実に逃げられる",
+        effect: { type: "escape" },
+        rarity: "uncommon",
+        price: 50,
+        icon: "💨",
+        tags: ["utility"]
     }
+
 };
 
 // ====== すべてのアイテムを統合してエクスポート ======

@@ -23,7 +23,7 @@ export const enemyPool = [
 			{
 				type: "armor",
 				item: items.rustyArmor,
-				chance: 0.7
+				chance: 0.5
 			}
 		]
 	},
@@ -54,7 +54,6 @@ export const enemyPool = [
 			{
 				name: "突き刺し",
 				effectId: "stab",
-				//effect: () => ({ type: "damage", value: 8 }),
 				chance: 0.25
 			}
 		]
@@ -84,9 +83,6 @@ export const enemyPool = [
 			}
 		],
 		onDefeatId: "goldenslimeDefeat"
-		//onDefeat: () => {
-		//	updateLog("✨ ゴールデンスライムを倒した！何か特別なことが起こりそうだ…", "gold");
-		//}
 	},
 
 	// ====== ボスモンスター ======
@@ -109,26 +105,21 @@ export const enemyPool = [
 			{
 				type: "armor",
 				item: items.dragonArmor,
-				chance: 0.5
+				chance: 1.0
 			}
 		],
 		skills: [
 			{
 				name: "火炎の息",
 				effectId: "fireBreath",
-				//effect: () => ({ type: "damage", value: 50 }),
 				chance: 0.4
 			},
 			{
 				name: "咆哮",
 				effectId: "roar",
-				//effect: () => ({ type: "debuff", stat: "defense", amount: -2 }),
 				chance: 0.2
 			}
 		],
 		onDefeatId: "dragonDefeat"
-		//onDefeat: () => {
-		//	updateLog("🔥 ドラゴンを討伐した！世界に平和が訪れた…", "orange");
-		//}
 	}
 ];

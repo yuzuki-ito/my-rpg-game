@@ -1,19 +1,22 @@
 import { handleVillageTile, handleGrassTileEvent, handleBossTile, drawMap } from "../core/map.js";
 import { updateLog } from "../ui/log.js";
 import { playBGM } from "../core/audio.js";
+import { mapMeta } from "../data/mapMeta.js";
 
 export const TILE_INFO = {
     "🌲": {
         name: "森",
-        passable: false,
+        passable: true,
         description: "うっそうと茂る木々。通れない。",
-        color: "#2e7d32"
+        color: "#2e7d32",
+        weight: 5
     },
     "🌾": {
         name: "草原",
         passable: true,
         description: "風が気持ちよく吹き抜ける草原。",
-        color: "#aee571"
+        color: "#aee571",
+        weight: 10
     },
     "🌿": {
         name: "草むら",
@@ -21,6 +24,7 @@ export const TILE_INFO = {
         description: "何かが潜んでいそうな草むら。",
         event: "encounter",
         color: "#81c784",
+        weight: 1,
         handler: handleGrassTileEvent // ← 追加！
     },
     "🏠": {
@@ -29,7 +33,8 @@ export const TILE_INFO = {
         description: "休息と買い物ができる村。",
         event: "village",
         color: "#ffcc80",
-        handler: handleVillageTile // ← 追加！
+        weight: 0,
+        handler: (player) => handleVillageTile(player) // ← 追加！
     },
     "👹": {
         name: "ボスエリア",
@@ -44,7 +49,14 @@ export const TILE_INFO = {
         passable: true,
         description: "森の奥へと続く道がある…",
         color: "#4caf50",
+        weight: 0,
         handler: (player) => {
+            // 現在位置を記録
+            player.returnPoint = {
+                mapId: player.location.mapId,
+                x: player.location.x,
+                y: player.location.y
+            };
             player.location.mapId = "deepForest";
             player.location.x = 1;
             player.location.y = 1;
@@ -59,12 +71,21 @@ export const TILE_INFO = {
         description: "村へと続く小道。",
         color: "#ffcc80",
         handler: (player) => {
-            player.location.mapId = "main";
-            player.location.x = 2;
-            player.location.y = 2;
-            updateLog("🏘️ 村に戻ってきた！");
+            if (player.returnPoint) {
+                player.location.mapId = player.returnPoint.mapId;
+                player.location.x = player.returnPoint.x;
+                player.location.y = player.returnPoint.y;
+                updateLog("🏘️ 深い森から出た！");
+                player.returnPoint = null; // 一度戻ったらリセット
+            } else {
+                // フォールバック（戻り先がない場合）
+                player.location.mapId = "main";
+                player.location.x = 2;
+                player.location.y = 2;
+                updateLog("🏘️ 深い森から出た！");
+            }
             drawMap();
-            playBGM(mapMeta.main.bgm);
+            playBGM(mapMeta[player.location.mapId]?.bgm);
         }
     }
 };

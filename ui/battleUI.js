@@ -1,9 +1,10 @@
 import { updateLog } from "./log.js";
-import { getCurrentEnemy } from "../core/battle.js";
-import { attack } from "../core/battle.js";
-import { getInBattle, playerTurn } from "../core/battle.js";
+import { getCurrentEnemy, attack, getInBattle, playerTurn, isPlayerTurn } from "../core/battle.js";
 import { usePotion, rest } from "../core/items.js";
 import { openSkillMenu } from "./skillMenu.js";
+
+// battleUI.js の先頭に追加
+let attackLocked = false;
 
 // ボタン操作
 export function setupBattleActionButtons() {
@@ -14,7 +15,8 @@ export function setupBattleActionButtons() {
 
 			switch (action) {
 				case "attack":
-					if (getInBattle() && playerTurn) {
+					if (getInBattle() && isPlayerTurn()) {
+						if (attackLocked) return; // ← 念のためここでも！
 						btn.disabled = true; // ← 連打防止！
 						attack();
 					} else {

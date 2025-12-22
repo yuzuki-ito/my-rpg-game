@@ -29,6 +29,8 @@ body {
   margin: 20px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 18px; /* 全体の基本サイズを少し大きめに */
+  line-height: 1.5;
 }
 
 h1 {
@@ -66,17 +68,19 @@ h1 {
 /* ====== マップ表示 ====== */
 #map {
   white-space: pre;
-  font-size: 1.5em;
-  line-height: 1.4;
-  margin: 0;
+  font-size: 1.37em;
+  line-height: 1.2;
+  margin: 5;
   text-align: left;
-  padding: 12px;
+  padding: 10px;
   font-family: monospace; /* ← これが大事！ */
 }
 
 .map-display {
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono",
-    monospace;
+  font-size: 32px;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  font-family: monospace;
 }
 
 /* ====== レイアウト ====== */
@@ -153,7 +157,7 @@ h1 {
 #log {
   flex: 1;
   overflow-y: auto;
-  font-size: 0.95em;
+  font-size: 1em;
   line-height: 1.45;
   text-align: left;
   padding-right: 6px;

@@ -1,0 +1,45 @@
+/rpg-game/
+├── index.html           ← エントリーポイント
+├── style.css            ← 全体のスタイル定義（フォント・レイアウト・UI装飾など）
+├── main.js              ← ゲームの初期化・イベント登録・ループ処理などの起点
+├── /core/               ← ゲームの中核ロジック
+│   ├── audio.js         ← BGM・SEの再生・停止・音量管理など
+│   ├── events.js        ← マップイベントや特殊イベントの処理（TILE_INFOのhandlerなど）
+│   ├── inventory.js     ← 所持品の追加・削除・使用処理
+│   ├── items.js         ← アイテムの効果処理（回復・装備・使用など）
+│   ├── level.js         ← 経験値・レベルアップ・ステータス成長処理
+│   ├── save.js          ← セーブ・ロード処理（ローカルストレージなど）
+│   ├── skill.js         ← スキルの習得・使用・効果処理
+│   ├── player.js        ← プレイヤーの状態（HP/MP/装備/経験値など）
+│   ├── battle.js        ← 戦闘処理（ターン制・敵AI・ダメージ計算など）
+│   ├── quest.js         ← クエストの進行・報酬・会話連携など
+│   ├── map.js           ← マップ移動・マスイベント処理・描画など
+│   └── log.js           ← ログ出力やセリフ表示の制御（UIとは分離）
+├── /data/               ← ゲーム内の静的データ
+│   └── constants.js     ← 定数（TILE記号、色、最大値など）
+│   ├── enemies.js       ← 敵のステータス・出現条件・ドロップなど
+│   ├── equipment.js     ← 装備品の定義（武器・防具・効果など）
+│   ├── item.js          ← アイテムの定義専用ファイル
+│   ├── mapData.js       ← マップの構造（2D配列やマスの種類）
+│   ├── mapMeta.js       ← マップメタ情報
+│   ├── quests.js        ← クエストの定義（目標・報酬・前提など）
+│   ├── skills.js        ← スキルの定義（名前・効果・消費MPなど）
+│   ├── tileTypes.js     ← マップチップ定義
+│   └── villagers.js     ← 村人の会話・クエスト連携・出現条件など
+├── /ui/                 ← ユーザーインターフェース関連
+│   ├── battleUI.js      ← 戦闘中のUI（HPバー・コマンド選択など）
+│   ├── dialog.js        ← 会話ウィンドウ・選択肢表示
+│   ├── equipmentMenu.js ← 装備変更UI
+│   ├── init.js          ← UIの初期化処理（イベント登録など）
+│   ├── inventoryMenu.js ← 所持品一覧・使用UI
+│   ├── learnSkillMenu.js← スキル習得画面
+│   ├── log.js           ← ログ表示（UI側）
+│   ├── questLog.js      ← クエスト一覧・進行状況の表示
+│   ├── render.js        ← ステータス・マップ・UIの描画処理
+│   ├── skillMenu.js     ← スキル使用画面
+│   ├── statUpgradeMenu.js ← ステータス強化画面（レベルアップ時など）
+│   ├── status.js        ← プレイヤーのステータス表示
+│   └── ui.js            ← 共通UI制御（メニュー開閉・画面切替など）
+│── /utils/              ← 汎用ツール
+│    └── helpers.js      ← ランダム処理、数値整形、ディープコピーなどの共通関数
+└── /images/             ← アセット

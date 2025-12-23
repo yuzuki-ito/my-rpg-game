@@ -48,6 +48,8 @@ export function announceEnemyAppearance(enemy) {
 		updateLog(`✨✨ ${enemy.name} が現れた！✨✨`, "quest");
 	} else if (enemy.rarity === "legendary") {
 		updateLog(`🌟🌟 ${enemy.name} が降臨した！🌟🌟`, "enemy");
+	} else if (enemy.rarity === "boss") {
+		updateLog(`👹 ボス『 ${enemy.name}』が現れた！`, "enemy");
 	} else {
 		updateLog(`⚔️ ${enemy.name} が現れた！`, "enemy");
 	}

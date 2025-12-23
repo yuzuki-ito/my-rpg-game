@@ -1,3 +1,7 @@
+// helpers.js の先頭に追加
+import { player } from "../core/player.js";
+
+
 // レアリティ定義
 export const rarityTable = {
 	common: {
@@ -102,12 +106,46 @@ export function generateDrop(level, rarity, type = null) {
 }
 
 /**
- * ステータス合計（任意の数値を合算）
- * @param  {...number} values - 任意の数値（base, bonus, 装備など）
+ * ステータス合計（base, bonus, 装備などを合算）
+ * @param  {...(number|object)} values - 数値または { permanent, temp } 形式の補正
  * @returns {number} - 合計値
  */
 export function getTotalStat(...values) {
-	return values.reduce((sum, val) => sum + (val || 0), 0);
+	return values.reduce((sum, val) => {
+		if (typeof val === "number") {
+			return sum + val;
+		} else if (typeof val === "object" && val !== null) {
+			const permanent = typeof val.permanent === "number" ? val.permanent : 0;
+			const temp = typeof val.temp === "number" ? val.temp : 0;
+			return sum + permanent + temp;
+		}
+		return sum;
+	}, 0);
+}
+
+// リセット関数
+export function resetTempBonuses(player) {
+	const keys = [
+		"attackBonus",
+		"defenseBonus",
+		"speedBonus",
+		"accuracyBonus",
+		"critBonus",
+		"recoveryBonus",
+		"magicBonus"
+	];
+
+	for (const key of keys) {
+		const bonus = player[key];
+
+		if (typeof bonus === "object" && bonus !== null) {
+			// すでにオブジェクトなら temp をリセット
+			bonus.temp = 0;
+		} else {
+			// 数値だった場合はオブジェクトに変換
+			player[key] = { permanent: bonus || 0, temp: 0 };
+		}
+	}
 }
 
 // アイテムを生成する関数

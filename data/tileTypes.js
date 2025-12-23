@@ -25,7 +25,7 @@ export const TILE_INFO = {
         event: "encounter",
         color: "#81c784",
         weight: 1,
-        handler: handleGrassTileEvent // ← 追加！
+        handler: (player) => handleGrassTileEvent(player) // ← 追加！
     },
     "🏠": {
         name: "村",

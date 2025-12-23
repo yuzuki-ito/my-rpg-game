@@ -12,7 +12,7 @@ export const skillTree = {
 				requiredLevel: 1,
 				requires: null,
 				cost: 2,
-				mpCost: 3,
+				mpCost: 2,
 				canMiss: false,
 				targetType: "enemy",
 				description: "小さな火の玉で敵単体を攻撃する",
@@ -30,13 +30,13 @@ export const skillTree = {
 				requiredLevel: 10,
 				requires: "ember",
 				cost: 4,
-				mpCost: 15,
+				mpCost: 18,
 				canMiss: false,
 				targetType: "enemy",
 				description: "炎の槍で敵単体を貫く",
 				ignoreDefense: true,
 				scaling: "magic",
-				cooldown: 5,
+				cooldown: 6,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
@@ -49,13 +49,13 @@ export const skillTree = {
 				requiredLevel: 20,
 				requires: "flameLance",
 				cost: 8,
-				mpCost: 30,
+				mpCost: 35,
 				canMiss: false,
 				targetType: "enemy",
 				description: "灼熱の刃で敵単体に壊滅的なダメージを与える",
 				ignoreDefense: true,
 				scaling: "magic",
-				cooldown: 10,
+				cooldown: 12,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
@@ -91,13 +91,13 @@ export const skillTree = {
 				requiredLevel: 11,
 				requires: "aquaShot",
 				cost: 4,
-				mpCost: 15,
+				mpCost: 14,
 				canMiss: false,
 				targetType: "enemy",
 				description: "水流の槍で敵単体を貫く",
 				ignoreDefense: false,
 				scaling: "magic",
-				cooldown: 5,
+				cooldown: 4,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
@@ -110,13 +110,13 @@ export const skillTree = {
 				requiredLevel: 22,
 				requires: "streamLance",
 				cost: 8,
-				mpCost: 30,
+				mpCost: 28,
 				canMiss: false,
 				targetType: "enemy",
 				description: "高圧の水流で敵単体に大ダメージを与える",
 				ignoreDefense: false,
 				scaling: "magic",
-				cooldown: 10,
+				cooldown: 8,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
@@ -134,7 +134,7 @@ export const skillTree = {
 				requiredLevel: 2,
 				requires: null,
 				cost: 2,
-				mpCost: 3,
+				mpCost: 2,
 				canMiss: true,
 				targetType: "enemy",
 				description: "鋭い風の刃で敵単体を切り裂く",
@@ -152,13 +152,13 @@ export const skillTree = {
 				requiredLevel: 12,
 				requires: "windCutter",
 				cost: 4,
-				mpCost: 15,
+				mpCost: 12,
 				canMiss: true,
 				targetType: "enemy",
 				description: "突風の一撃で敵単体に強力なダメージを与える",
 				ignoreDefense: false,
 				scaling: "magic",
-				cooldown: 5,
+				cooldown: 3,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
@@ -171,13 +171,13 @@ export const skillTree = {
 				requiredLevel: 21,
 				requires: "galeThrust",
 				cost: 8,
-				mpCost: 30,
+				mpCost: 25,
 				canMiss: false,
 				targetType: "enemy",
 				description: "空を裂く風で敵単体に壊滅的なダメージを与える",
 				ignoreDefense: false,
 				scaling: "magic",
-				cooldown: 10,
+				cooldown: 8,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
@@ -195,7 +195,7 @@ export const skillTree = {
 				requiredLevel: 3,
 				requires: null,
 				cost: 3,
-				mpCost: 4,
+				mpCost: 3,
 				canMiss: false,
 				targetType: "enemy",
 				description: "光の矢で敵単体を貫く",
@@ -213,13 +213,13 @@ export const skillTree = {
 				requiredLevel: 14,
 				requires: "lightArrow",
 				cost: 6,
-				mpCost: 20,
+				mpCost: 22,
 				canMiss: false,
 				targetType: "enemy",
 				description: "まばゆい光の刃で敵単体を斬り裂く",
 				ignoreDefense: true,
 				scaling: "magic",
-				cooldown: 5,
+				cooldown: 6,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 2.5 + player.level * 0.3 + Math.random() * 1.5);
@@ -232,13 +232,13 @@ export const skillTree = {
 				requiredLevel: 22,
 				requires: "radiantBlade",
 				cost: 9,
-				mpCost: 40,
+				mpCost: 45,
 				canMiss: false,
 				targetType: "enemy",
 				description: "神聖な光で敵単体に壊滅的なダメージを与える",
 				ignoreDefense: true,
 				scaling: "magic",
-				cooldown: 10,
+				cooldown: 12,
 				effect: () => {
 					const magic = getTotalStat(player.magic, player.magicBonus, player.weapon?.magic || 0);
 					const damage = Math.floor(magic * 4 + player.level * 0.4 + Math.random() * 2.5);
@@ -256,7 +256,7 @@ export const skillTree = {
 				requiredLevel: 3,
 				requires: null,
 				cost: 3,
-				mpCost: 4,
+				mpCost: 3,
 				canMiss: true,
 				targetType: "enemy",
 				description: "闇の爪で敵単体を切り裂く",
@@ -274,7 +274,7 @@ export const skillTree = {
 				requiredLevel: 8,
 				requires: "darkClaw",
 				cost: 6,
-				mpCost: 20,
+				mpCost: 18,
 				canMiss: true,
 				targetType: "enemy",
 				description: "虚無の槍で敵単体を貫く強力な闇属性攻撃",
@@ -293,7 +293,7 @@ export const skillTree = {
 				requiredLevel: 22,
 				requires: "voidSpike",
 				cost: 9,
-				mpCost: 40,
+				mpCost: 38,
 				canMiss: false,
 				targetType: "enemy",
 				description: "深淵の力で敵単体に壊滅的な闇属性ダメージを与える",
@@ -317,12 +317,12 @@ export const skillTree = {
 				requiredLevel: 1,
 				requires: null,
 				cost: 1,
-				mpCost: 5,
+				mpCost: 4,
 				canMiss: false,
 				targetType: "self",
 				description: "HPを少し回復する",
 				effect: () => {
-					const recovery = Math.floor(player.level * 1.5 + 10);
+					const recovery = Math.floor(player.level * 2 + 12);
 					return { type: "heal", value: recovery };
 				}
 			},
@@ -332,13 +332,13 @@ export const skillTree = {
 				requiredLevel: 14,
 				requires: "heal",
 				cost: 5,
-				mpCost: 25,
+				mpCost: 22,
 				canMiss: false,
 				targetType: "self",
 				description: "HPを中程度回復する",
 				cooldown: 5,
 				effect: () => {
-					const recovery = Math.floor(player.level * 2.5 + 20);
+					const recovery = Math.floor(player.level * 3 + 25);
 					return { type: "heal", value: recovery };
 				}
 			},
@@ -348,13 +348,13 @@ export const skillTree = {
 				requiredLevel: 25,
 				requires: "greaterHeal",
 				cost: 10,
-				mpCost: 50,
+				mpCost: 45,
 				canMiss: false,
 				targetType: "self",
 				description: "HPを大きく回復する",
 				cooldown: 10,
 				effect: () => {
-					const recovery = Math.floor(player.level * 3.5 + 30);
+					const recovery = Math.floor(player.level * 4 + 40);
 					return { type: "heal", value: recovery };
 				}
 			}

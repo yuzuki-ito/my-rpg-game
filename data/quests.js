@@ -10,31 +10,33 @@ export const questList = {
 	slimeHunt: {
 		id: "slimeHunt",
 		title: "スライム退治",
-		description: "スライムを5体倒そう！",
+		description: "スライムを10体倒そう！",
 		type: "kill",           // 討伐系クエスト
 		target: "slime",        // 対象の敵タイプ
-		goal: 5,
+		goal: 10,
 		autoComplete: false,
 		repeatable: false,
 		reward: {
-			exp: 10,
-			potions: 2
+			exp: 60,
+			potions: 3,
+			// skill: "quickStrike" // 🆕 初スキル報酬で成長を実感！
 		}
 	},
 
 	herbGathering: {
 		id: "herbGathering",
 		title: "薬草集め",
-		description: "草むらで薬草を7つ集めよう！",
+		description: "草むらで薬草を15つ集めよう！",
 		type: "gather",         // 採集系クエスト
 		target: "herb",         // 採集対象
-		goal: 7,
+		goal: 15,
 		prerequisite: "slimeHunt",
 		autoComplete: false,
 		repeatable: false,
 		reward: {
-			exp: 15,
-			maxHp: 10
+			exp: 40,
+			maxHp: 10,
+			potions: 2
 		}
 	},
 
@@ -49,8 +51,10 @@ export const questList = {
 		autoComplete: true,
 		repeatable: false,
 		reward: {
-			exp: 100,
-			//gold: 200,
+			exp: 200,
+			gold: 300,
+			// skill: "dragonRoar", // 🆕 強力なスキル報酬でご褒美感UP！
+			// items: [{ name: "ドラゴンのうろこ", type: "material", quantity: 1 }]
 		}
 	}
 

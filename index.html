@@ -10,60 +10,61 @@
     <h1>🧙‍♂️ ド〇クエ風RPG</h1>
 
     <main id="game-container">
-      <div id="enemy-image">
-        <img id="enemy-img" src="" alt="敵の画像" />
-      </div>
-
-      <div id="map-and-controls">
-        <div id="main-view">
-          <pre id="map" class="map-display"></pre>
-        </div>
-
-        <div id="controls" aria-label="移動操作">
-          <div class="control-row">
-            <button data-move="up" aria-label="上に移動">↑</button>
+      <div id="map-log-area">
+        <div id="map-and-controls">
+          <div id="main-view">
+            <pre id="map" class="map-display"></pre>
           </div>
-          <div class="control-row">
-            <button data-move="left" aria-label="左に移動">←</button>
-            <button data-move="down" aria-label="下に移動">↓</button>
-            <button data-move="right" aria-label="右に移動">→</button>
+
+          <div class="map-buttons">
+            <div id="enemy-image">
+              <img id="enemy-img" src="" alt="敵の画像" style="display: none" />
+            </div>
+
+            <div
+              id="battle-actions"
+              class="vertical-buttons"
+              aria-label="戦闘アクション"
+            >
+              <button data-action="attack">⚔ こうげき</button>
+              <button data-action="skill">✨ スキル</button>
+              <button data-action="potion">🧪 ポーション</button>
+              <button data-action="rest">🛌 休む</button>
+
+              <button id="menu-button" class="button">📁 メニュー</button>
+              <div id="extra-menu">
+                <button data-menu="status">ステータス</button>
+                <button data-menu="stat-upgrade">ステータス強化</button>
+                <button data-menu="learn-skill">スキル習得</button>
+                <button data-menu="skill-tree">スキル一覧</button>
+                <button data-menu="inventory">装備変更・所持品</button>
+                <button data-menu="quest-log">クエストログ</button>
+                <button data-menu="save">セーブ</button>
+                <button data-menu="load">ロード</button>
+              </div>
+            </div>
+
+            <div id="controls" aria-label="移動操作">
+              <div class="control-row">
+                <button data-move="up" aria-label="上に移動">↑</button>
+              </div>
+              <div class="control-row">
+                <button data-move="left" aria-label="左に移動">←</button>
+                <button data-move="down" aria-label="下に移動">↓</button>
+                <button data-move="right" aria-label="右に移動">→</button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div id="battle-actions" aria-label="戦闘アクション">
-          <button data-action="attack">こうげき</button>
-          <button data-action="skill">スキル</button>
-          <button data-action="potion">ポーション</button>
-          <button data-action="rest">休む</button>
+        <div id="log-and-status">
+          <div id="log-panel">
+            <h3>ログ</h3>
+            <div id="log" class="log-box"></div>
+          </div>
+          <div id="status" class="status-panel"></div>
         </div>
-      </div>
-
-      <div id="log-panel">
-        <h3>ログ</h3>
-        <div id="log" class="log-box"></div>
       </div>
     </main>
-
-    <div id="status-and-actions">
-      <div id="status" class="status-panel"></div>
-
-      <div id="menu-area">
-        <div id="menu-toggle">
-          <button id="menu-button">📂 メニュー</button>
-        </div>
-
-        <div id="extra-menu" style="display: none">
-          <button data-menu="status">ステータス</button>
-          <button data-menu="stat-upgrade">ステータス強化</button>
-          <button data-menu="learn-skill">スキル習得</button>
-          <button data-menu="skill-tree">スキル一覧</button>
-          <button data-menu="inventory">装備変更・所持品</button>
-          <button data-menu="quest-log">クエストログ</button>
-          <button data-menu="save">セーブ</button>
-          <button data-menu="load">ロード</button>
-        </div>
-      </div>
-    </div>
 
     <div id="status-screen" class="modal-window" style="display: none"></div>
 

@@ -438,10 +438,18 @@ export function enemyUseSkill(enemy) {
 		const damage = Math.max(1, result.value);
 		player.hp -= damage;
 		updateLog(`💥 ${enemy.name} の ${skill.name}！${damage} ダメージを受けた！`, "enemy");
-	} else if (result?.type === "debuff") {
-		// 例：防御力を下げるなど
-		player.defenseBonus = (player.defenseBonus || 0) + result.amount;
-		updateLog(`😨 ${enemy.name} の ${skill.name}！${result.stat} が下がった！`, "enemy");
+	} else if (result?.type === "buff" || result?.type === "debuff") {
+		const statKey = `${result.stat}Bonus`;
+		const bonus = player[statKey];
+
+		if (typeof bonus !== "object" || bonus === null) {
+			player[statKey] = { permanent: 0, temp: 0 };
+		}
+
+		player[statKey].temp += result.amount;
+
+		const sign = result.amount > 0 ? "上がった" : "下がった";
+		updateLog(`✨ ${enemy.name} の ${skill.name}！${result.stat} が${sign}！`, "enemy");
 	}
 
 	updateStatus();

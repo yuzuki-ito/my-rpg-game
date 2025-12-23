@@ -10,18 +10,30 @@ export function updateStatus() {
 	const mpPercent = Math.floor((player.mp / player.maxMp) * 100);
 	//const magic = getTotalStat(player.baseMagic, player.magicBonus, player.weapon?.magic || 0);
 
-	status.innerHTML =
-		`
-    <strong>${player.name}</strong>　Lv.${player.level}<br>
-    HP: ${player.hp} / ${player.maxHp}
+	status.innerHTML = `
+  <div class="status-header">
+    <strong>${player.name}</strong>　Lv.${player.level}
+  </div>
+
+  <div class="status-section">
+    ❤️ HP: ${player.hp} / ${player.maxHp}
     <div class="hp-bar"><div class="hp-fill" style="width:${hpPercent}%"></div></div>
-    MP: ${player.mp} / ${player.maxMp}
+    🔷 MP: ${player.mp} / ${player.maxMp}
     <div class="mp-bar"><div class="mp-fill" style="width:${mpPercent}%"></div></div>
-    EXP: ${player.exp} / ${player.nextExp}<br>
-    ポーション: ${player.potions}　SP: ${player.skills.points}<br>
-    武器: ${player.weapon ? player.weapon.name : "なし"}<br>
-    防具: ${player.armor ? player.armor.name : "なし"}<br>
-    `;
+    ⭐ EXP: ${player.exp} / ${player.nextExp}
+  </div>
+
+  <div class="status-section">
+    🧪 ポーション: ${player.potions}　🎯 SP: ${player.skills.points}
+  </div>
+
+  <div class="status-divider"></div>
+
+  <div class="status-section">
+    🗡️ 武器: ${player.weapon ? player.weapon.name : "なし"}<br>
+    🛡️ 防具: ${player.armor ? player.armor.name : "なし"}
+  </div>
+`;
 
 	const hpFill = document.querySelector(".hp-fill");
 	if (hpFill) {
@@ -64,14 +76,14 @@ export function toggleStatus() {
 		const total = getTotalStat(base, bonus, equip);
 		const suffix = stat.suffix || "";
 
-		html += `<p>${stat.label}：${total}${suffix}（基本:${base} + 補正:${bonus} + 装備:${equip}）</p>`;
+		html += `<p>${stat.label}：${total}${suffix}（基本:${base} + 補正:${formatBonus(bonus)} + 装備:${equip}）</p>`;
 	});
 
 	html += `
         <hr>
         <p>武器：${player.weapon ? player.weapon.name : "なし"}</p>
         <p>防具：${player.armor ? player.armor.name : "なし"}</p>
-		<button class="button" onclick="toggleStatus()">閉じる</button>
+		<button class="button">閉じる</button>
     `;
 
 	screen.innerHTML = html;
@@ -103,4 +115,14 @@ export function setupStatusCloseButton() {
 	if (btn) {
 		btn.addEventListener("click", toggleStatus);
 	}
+}
+
+// 補正を見やすく整形する関数
+function formatBonus(bonus) {
+	if (typeof bonus === "object" && bonus !== null) {
+		const p = bonus.permanent || 0;
+		const t = bonus.temp || 0;
+		return t !== 0 ? `${p}（一時:${t >= 0 ? "+" : ""}${t}）` : `${p}`;
+	}
+	return bonus || 0;
 }

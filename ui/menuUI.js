@@ -18,11 +18,11 @@ export function setupMenuToggle() {
 
 function toggleMenu() {
     const menu = document.getElementById("extra-menu");
-    const toggleBtn = document.querySelector("#menu-toggle button");
+    const toggleBtn = document.getElementById("menu-button");
     const isOpen = getComputedStyle(menu).display === "flex";
 
     menu.style.display = isOpen ? "none" : "flex";
-    toggleBtn.textContent = isOpen ? "📂 メニュー" : "📂 メニューを閉じる";
+    toggleBtn.textContent = isOpen ? "📂 メニュー" : "📂 閉じる";
 }
 
 // メニュー表示後の各種ボタン押下処理

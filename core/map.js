@@ -13,6 +13,7 @@ import { questList } from "../data/quests.js";
 import { player } from "./player.js";
 import { showDialogue } from "../ui/dialog.js";
 import { defeatHandlers } from "./defeatHandlers.js";
+import { enemyPool } from "../data/enemies.js"; // ← これが必要！
 
 // ====== マップ描画処理 マルチマップ対応======
 export function drawMap() {
@@ -201,7 +202,7 @@ export function handleGrassTileEvent() {
 	}
 }
 
-// ドラゴンのクエスト処理
+// ボスのクエスト処理
 export function handleBossTile(player) {
 	const quest = player.quests?.bossBattle;
 	const hasStarted = quest?.started === true;
@@ -212,26 +213,12 @@ export function handleBossTile(player) {
 	console.log("開始？:", hasStarted);
 	console.log("完了？:", isCompleted);
 
-	// クエスト完了済みでも戦えるが報酬なし
-	if (isCompleted) {
-		updateLog("💀 ドラゴンが再び現れた…だが報酬はもうない。", "warning");
-		statuchangebossflg = true;
-	}
-	console.log("ステータス変更？:", statuchangebossflg);
+	let boss;
 
-	// クエスト未受注 or 未開始でも戦えるが報酬なし
 	if (!hasStarted && !isCompleted) {
 		updateLog("⚠️ クエストを受けていないため、討伐しても報酬は得られない…", "warning");
-	}
-
-	// ボス戦開始
-	updateLog("👹 ボス『ドラゴン』が現れた！");
-	const boss = generateEnemy(player.level, { forceType: "boss" });
-
-	// クエスト未受注 or 未開始 → 経験値を減らし、ステータスを強化
-	if (!hasStarted && !isCompleted) {
-		boss.exp = Math.floor(boss.exp * 0.1); // 経験値減少
-		// ステータス超強化（例：HP10倍、攻撃10倍、スキル追加など）クエスト未完了でクエストを受けていない時
+		boss = findEnemyById("feralDragon");
+		boss.exp = Math.floor(boss.exp * 0.1);
 		boss.name = "狂暴なドラゴン";
 		boss.hp = Math.floor(boss.hp * 10);
 		boss.attack = Math.floor(boss.attack * 10);
@@ -239,14 +226,13 @@ export function handleBossTile(player) {
 		boss.critRate = 1.0;
 		boss.critMultiplier = 3;
 		boss.tags = [...(boss.tags || []), "berserk"];
-		boss.onDefeatId = "feralDragonDefeat"; // ← これを追加！
-		updateLog("🔥 狂気に満ちたドラゴンが襲いかかってきた！", "danger");
-	}
+		boss.onDefeatId = "feralDragonDefeat";
+		// updateLog("🔥 狂気に満ちたドラゴンが襲いかかってきた！", "danger");
 
-	// クエスト完了済みで戦う
-	if (statuchangebossflg) {
-		boss.exp = Math.floor(boss.exp * 0.1); // 経験値減少
-		// ステータス超強化（例：HP1.5倍、攻撃1.5倍、スキル追加など）
+	} else if (isCompleted) {
+		updateLog("💀 ドラゴンが再び現れた…だが報酬はもうない。", "warning");
+		boss = findEnemyById("awakenedDragon");
+		boss.exp = Math.floor(boss.exp * 0.1);
 		boss.name = "覚醒したドラゴン";
 		boss.hp = Math.floor(boss.hp * 1.5);
 		boss.attack = Math.floor(boss.attack * 1.5);
@@ -254,8 +240,12 @@ export function handleBossTile(player) {
 		boss.critRate = 0.5;
 		boss.critMultiplier = 3;
 		boss.tags = [...(boss.tags || []), "berserk"];
-		boss.onDefeatId = "awakenedDragonDefeat"; // ← これを追加！
-		updateLog("🔥 覚醒したドラゴンが襲いかかってきた！", "danger");
+		boss.onDefeatId = "awakenedDragonDefeat";
+		// updateLog("🔥 覚醒したドラゴンが襲いかかってきた！", "danger");
+
+	} else {
+		// updateLog("👹 ボス『ドラゴン』が現れた！");
+		boss = findEnemyById("dragon");
 	}
 
 	battle(boss, {
@@ -276,3 +266,6 @@ export function handleBossTile(player) {
 	});
 }
 
+function findEnemyById(id) {
+	return structuredClone(enemyPool.find(e => e.id === id));
+}

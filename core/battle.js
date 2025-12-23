@@ -74,6 +74,13 @@ export function generateEnemy(level, options = {}) {
 	base.defense ??= 1;
 	base.exp ??= 1;
 
+	console.log("出現候補:", base.name);
+	console.log("base.hp:", base.hp);
+	console.log("base.baseAttack:", base.baseAttack);
+	console.log("base.baseSpeed:", base.baseSpeed);
+	console.log("base.baseCrit:", base.baseCrit);
+	console.log("base.exp:", base.exp);
+
 	// レベル補正
 	const levelVariance = getRandomInt(-1, 2); // -1〜+2の範囲で変動
 	const targetLevel = Math.max(1, level + levelVariance);
@@ -83,10 +90,10 @@ export function generateEnemy(level, options = {}) {
 	base.name += ` Lv${targetLevel}`;
 
 	base.hp += levelDiff * 8;
-	base.baseAttack += Math.floor(levelDiff * 1.5);
-	base.defense += Math.floor(levelDiff * 1.0);
-	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.6);
-	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.5);
+	base.baseAttack += Math.floor(levelDiff * 1.45);
+	base.defense += Math.floor(levelDiff * 0.98);
+	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.58);
+	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.48);
 	base.baseAccuracy ??= base.accuracy ?? 100;
 	base.exp = Math.floor(5 + targetLevel ** 1.1); // 例：レベルに応じて非線形に増加
 	// 旧プロパティにコピー（互換性のため）
@@ -98,6 +105,13 @@ export function generateEnemy(level, options = {}) {
 	base.hp = Math.max(1, base.hp);
 	base.baseAttack = Math.max(1, base.baseAttack);
 	base.defense = Math.max(0, base.defense);
+
+	console.log("出現候補補正後:", base.name);
+	console.log("base.hp:", base.hp);
+	console.log("base.baseAttack:", base.baseAttack);
+	console.log("base.baseSpeed:", base.baseSpeed);
+	console.log("base.baseCrit:", base.baseCrit);
+	console.log("base.exp:", base.exp);
 
 	// ドロップ抽選（1つだけ）
 	base.drop = null;

@@ -6,7 +6,12 @@ import { items } from "../data/item.js";
 export const defeatHandlers = {
     dragonDefeat: () => {
         updateLog("🔥 ドラゴンを討伐した！", "success");
-        player.completedQuests.push("dragonHunt");
+
+        // ✅ 安全に初期化
+        player.completedQuests ??= [];
+        if (!player.completedQuests.includes("dragonHunt")) {
+            player.completedQuests.push("dragonHunt");
+        }
     },
 
     awakenedDragonDefeat: () => {
@@ -15,6 +20,11 @@ export const defeatHandlers = {
     },
 
     feralDragonDefeat: () => {
+        player.completedQuests ??= [];
+        player.titles ??= [];
+        player.inventory ??= {};
+        player.inventory.weapons ??= [];
+
         if (!player.completedQuests.includes("dragonHunt")) {
             updateLog("🏆 特別な称号『竜を恐れぬ者』を獲得！", "success");
             player.titles.push("竜を恐れぬ者");

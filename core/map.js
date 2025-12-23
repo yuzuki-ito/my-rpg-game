@@ -184,16 +184,18 @@ export function handleVillageTile(player) {
 }
 
 // 薬草クエストの処理
-export function handleGrassTileEvent() {
+export function handleGrassTileEvent(player) {
 	updateLog("草むらに入った…");
+
+	console.log("草むらクエスト実行");
 
 	const herbQuest = player.quests.herbGathering;
 	const herbDef = questList.herbGathering;
 	const roll = Math.random();
 
-	if (herbQuest && herbDef && !herbQuest.completed && herbQuest.progress < herbDef.goal && roll < 0.7) {
-		handleGatheringTile("herbGathering", 0.7, "薬草を見つけた！", "草むらを探したが、何も見つからなかった…");
-	} else if (roll < 0.3) {
+	if (herbQuest && herbDef && !herbQuest.completed && herbQuest.progress < herbDef.goal && roll < 0.5) {
+		handleGatheringTile("herbGathering", 0.5, "薬草を見つけた！", "草むらを探したが、何も見つからなかった…");
+	} else if (roll < 0.5) {
 		const enemy = generateEnemy(player.level, { forceType: "goblin" });
 		updateLog("🌿 草むらからゴブリンが飛び出してきた！");
 		battle(enemy);

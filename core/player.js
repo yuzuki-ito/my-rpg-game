@@ -15,38 +15,38 @@ const defaultPlayerData = {
 	// 基本情報
 	name: "勇者",
 	level: 1,
-	hp: 30,
-	maxHp: 30,
-	mp: 10,
-	maxMp: 10,
-	magic: 5,
+	hp: 24,
+	maxHp: 24,
+	mp: 8,
+	maxMp: 8,
+	magic: 4,
 
 	// ステータス（基本＋補正）
-	baseAttack: 5, attackBonus: {
+	baseAttack: 4, attackBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},
-	baseDefense: 3, defenseBonus: {
+	baseDefense: 2, defenseBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},
-	baseSpeed: 5, speedBonus: {
+	baseSpeed: 4, speedBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},
-	baseAccuracy: 90, accuracyBonus: {
+	baseAccuracy: 88, accuracyBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},
-	baseCrit: 5, critBonus: {
+	baseCrit: 3, critBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},
-	baseRecovery: 5, recoveryBonus: {
+	baseRecovery: 4, recoveryBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},
-	baseMagic: 5, magicBonus: {
+	baseMagic: 4, magicBonus: {
 		permanent: 0, // ステータス強化などで増えた分（永続）
 		temp: 0 // 戦闘中の一時的な補正（スキルなど）
 	},

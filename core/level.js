@@ -5,18 +5,19 @@ import { getRandomInt } from "../utils/helpers.js";
 
 // ステータス成長候補
 const growthStats = [
-	{ key: "Attack", label: "攻撃力", min: 1, max: 2 },
-	{ key: "Defense", label: "防御力", min: 1, max: 2 },
+	{ key: "Attack", label: "攻撃力", min: 1, max: 3 },
+	{ key: "Defense", label: "防御力", min: 1, max: 3 },
 	{ key: "Speed", label: "すばやさ", min: 1, max: 2 },
-	{ key: "Crit", label: "会心率", min: 1, max: 2 },
-	{ key: "Accuracy", label: "命中率", min: 1, max: 2 },
+	{ key: "Crit", label: "会心率", min: 0, max: 1 },
+	{ key: "Accuracy", label: "命中率", min: 0, max: 1 },
 	{ key: "Recovery", label: "回復力", min: 1, max: 2 },
 	{ key: "Magic", label: "魔力", min: 1, max: 2 },
 ];
 
+// レベルアップ処理
 export function levelUp() {
+	player.exp -= player.nextExp;
 	player.level++;
-	player.exp = 0;
 	player.nextExp = calculateNextExp(player.level);
 
 	// 固定成長
@@ -53,5 +54,5 @@ export function levelUp() {
 // レベルに応じて必要経験値を計算する関数
 function calculateNextExp(level) {
 	// 例：Lv1→15, Lv2→30, Lv3→50, Lv4→75, Lv5→105...
-	return Math.floor(20 + level ** 1.5 * 5);
+	return Math.floor(8 + level ** 1.4 * 4.5);
 }

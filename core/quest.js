@@ -8,6 +8,7 @@ import { showDialogue } from "../ui/dialog.js";
 import { villagers } from "../data/villagers.js";
 import { learnSkill } from "./skill.js";
 import { createItem } from "../utils/helpers.js"; // すでにインポートされていればOK
+import { levelUp } from "./level.js";
 
 // プレイヤーのクエスト状態を初期化（セーブデータに基づいて補完）
 export function initializeQuests() {
@@ -92,6 +93,10 @@ export function grantQuestReward(quest) {
 	if (reward.exp) {
 		player.exp += reward.exp;
 		updateLog(`📘 経験値 +${reward.exp}`, "info");
+		// 🔁 経験値が足りていればレベルアップを繰り返す
+		while (player.exp >= player.nextExp) {
+			levelUp();
+		}
 	}
 	if (reward.gold) {
 		player.gold = (player.gold || 0) + reward.gold;

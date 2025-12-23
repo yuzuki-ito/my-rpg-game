@@ -74,28 +74,62 @@ export function generateEnemy(level, options = {}) {
 	base.defense ??= 1;
 	base.exp ??= 1;
 
-	console.log("出現候補:", base.name);
-	console.log("base.hp:", base.hp);
-	console.log("base.baseAttack:", base.baseAttack);
-	console.log("base.baseSpeed:", base.baseSpeed);
-	console.log("base.baseCrit:", base.baseCrit);
-	console.log("base.exp:", base.exp);
-
 	// レベル補正
-	const levelVariance = getRandomInt(-1, 2); // -1〜+2の範囲で変動
+	const levelVariance = getRandomInt(-1, 2);
 	const targetLevel = Math.max(1, level + levelVariance);
 	const levelDiff = targetLevel - (base.baseLevel || 1);
 
+	console.log("出現候補補正前:", base.name);
+	console.log("補正前 base.hp:", base.hp);
+	console.log("補正前 base.baseAttack:", base.baseAttack);
+	console.log("補正前 base.baseSpeed:", base.baseSpeed);
+	console.log("補正前 base.baseCrit:", base.baseCrit);
+
+	// 名前補正
 	base.name = base.type === "rare" ? `${base.name}（レア）` : base.name;
 	base.name += ` Lv${targetLevel}`;
 
-	base.hp += levelDiff * 8;
-	base.baseAttack += Math.floor(levelDiff * 1.45);
-	base.defense += Math.floor(levelDiff * 0.98);
-	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.58);
-	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.48);
-	base.baseAccuracy ??= base.accuracy ?? 100;
-	base.exp = Math.floor(5 + targetLevel ** 1.1); // 例：レベルに応じて非線形に増加
+	// ステータス補正（元の値をベースに加算）
+	if (base.id === "goldenslime") {
+		// 🟡 ゴールデンスライム専用補正：逃げ足だけ強化、他は固定
+		console.log("⚙️ ゴールデンスライム専用補正を適用");
+		base.hp = base.hp; // 補正なし
+		base.baseAttack = base.baseAttack;
+		base.defense = base.defense;
+		base.baseSpeed = Math.max(1, Math.round(base.baseSpeed + levelDiff * 2.0)); // 逃げ足だけ強化！
+		base.baseCrit = base.baseCrit;
+		base.baseAccuracy = base.baseAccuracy ?? base.accuracy ?? 100;
+	} else {
+		// 🧩 通常モンスターの補正
+		base.hp = Math.max(1, Math.round(base.hp + levelDiff * (base.hp * 0.15 + 5)));
+		base.baseAttack = Math.max(1, Math.round(base.baseAttack + levelDiff * (base.baseAttack * 0.12 + 1)));
+		base.defense = Math.max(0, Math.round(base.defense + levelDiff * (base.defense * 0.1 + 0.8)));
+		base.baseSpeed = Math.max(1, Math.round(base.baseSpeed + levelDiff * (base.baseSpeed * 0.08 + 0.5)));
+		base.baseCrit = Math.round(base.baseCrit + levelDiff * 0.4);
+		base.baseAccuracy = base.baseAccuracy ?? base.accuracy ?? 100;
+	}
+
+	console.log("出現候補補正後:", base.name);
+	console.log("補正後 base.hp:", base.hp);
+	console.log("補正後 base.baseAttack:", base.baseAttack);
+	console.log("補正後 base.baseSpeed:", base.baseSpeed);
+	console.log("補正後 base.baseCrit:", base.baseCrit);
+
+	// 経験値補正（設定値をベースに、プレイヤーとのレベル差で調整）
+	const baseExp = base.exp ?? Math.floor(5 + targetLevel ** 1.5);
+	const levelGap = targetLevel - player.level;
+	const expMultiplier = 1 + Math.min(Math.max(levelGap * 0.1, -0.5), 1.0);
+	let adjustedExp = baseExp * expMultiplier;
+
+	// 小さすぎる場合は最低保証（例：レベル差1ごとに+1）
+	if (baseExp < 10 && levelGap > 0) {
+		adjustedExp += levelGap;
+	}
+	console.log(`補正前 base.exp: ${base.exp}, 補正後: ${Math.round(adjustedExp)}（倍率: ${expMultiplier.toFixed(2)}）`);
+
+	base.exp = Math.max(1, Math.round(adjustedExp));
+
+
 	// 旧プロパティにコピー（互換性のため）
 	base.attack = base.baseAttack;
 	base.accuracy = base.baseAccuracy;
@@ -105,13 +139,6 @@ export function generateEnemy(level, options = {}) {
 	base.hp = Math.max(1, base.hp);
 	base.baseAttack = Math.max(1, base.baseAttack);
 	base.defense = Math.max(0, base.defense);
-
-	console.log("出現候補補正後:", base.name);
-	console.log("base.hp:", base.hp);
-	console.log("base.baseAttack:", base.baseAttack);
-	console.log("base.baseSpeed:", base.baseSpeed);
-	console.log("base.baseCrit:", base.baseCrit);
-	console.log("base.exp:", base.exp);
 
 	// ドロップ抽選（1つだけ）
 	base.drop = null;
@@ -339,7 +366,7 @@ export function handleEnemyDefeat() {
 		defeatHandlers[currentEnemy.onDefeatId]();
 	}
 
-	if (player.exp >= player.nextExp) {
+	while (player.exp >= player.nextExp) {
 		levelUp();
 	}
 

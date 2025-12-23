@@ -79,6 +79,8 @@ export function toggleStatus() {
 		html += `<p>${stat.label}：${total}${suffix}（基本:${base} + 補正:${formatBonus(bonus)} + 装備:${equip}）</p>`;
 	});
 
+	console.log(player.attackBonus);
+
 	html += `
         <hr>
         <p>武器：${player.weapon ? player.weapon.name : "なし"}</p>

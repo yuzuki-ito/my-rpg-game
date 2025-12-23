@@ -17,13 +17,13 @@ export function showStatUpgradeMenu() {
 	const upgrades = [
 		{ label: "最大HP +5", apply: () => player.maxHp += 5 },
 		{ label: "最大MP +3", apply: () => player.maxMp += 3 },
-		{ label: "攻撃力 +1", apply: () => player.attackBonus += 1 },
+		{ label: "攻撃力 +1", apply: () => player.attackBonus.permanent += 1 },
 		{ label: "防御力 +1", apply: () => player.defenseBonus.permanent += 1 },
-		{ label: "すばやさ +1", apply: () => player.speedBonus += 1 },
-		{ label: "会心率 +1%", apply: () => player.critBonus += 1 },
-		{ label: "命中率 +1%", apply: () => player.accuracyBonus += 1 },
-		{ label: "回復力 +1", apply: () => player.recoveryBonus += 1 },
-		{ label: "魔力 +1", apply: () => player.magicBonus += 1 }
+		{ label: "すばやさ +1", apply: () => player.speedBonus.permanent += 1 },
+		{ label: "会心率 +1%", apply: () => player.critBonus.permanent += 1 },
+		{ label: "命中率 +1%", apply: () => player.accuracyBonus.permanent += 1 },
+		{ label: "回復力 +1", apply: () => player.recoveryBonus.permanent += 1 },
+		{ label: "魔力 +1", apply: () => player.magicBonus.permanent += 1 }
 	];
 
 	// ステータス強化ボタンをまとめるコンテナ

@@ -4,16 +4,12 @@ import { getLearnedSkills } from "./skill.js";
 import { obtainEquipment } from "./inventory.js";
 import { levelUp } from "./level.js";
 import { checkQuestProgressOnKill } from "./quest.js";
-import { showEnemyImage } from "../ui/battleUI.js";
+import { showEnemyImage, announceEnemyAppearance, enableBattleControls } from "../ui/battleUI.js";
 import { playBGM } from "./audio.js";
-import { getTotalStat } from "../utils/helpers.js";
+import { getTotalStat, resetTempBonuses, createItem, getRandomInt } from "../utils/helpers.js";
 import { updateLog } from "../ui/log.js";
 import { updateStatus } from "../ui/status.js";
-import { announceEnemyAppearance } from "../ui/battleUI.js";
-import { getRandomInt } from "../utils/helpers.js";
 import { skillEffects } from "../data/skillEffects.js";
-import { enableBattleControls } from "../ui/battleUI.js"; // ← UI側に定義した場合
-import { createItem } from "../utils/helpers.js"; // すでにインポートされていればOK
 import { defeatHandlers } from "./defeatHandlers.js";
 
 // 戦闘状態の管理に関係する変数
@@ -45,9 +41,9 @@ export function generateEnemy(level, options = {}) {
 		return Math.random() < (e.spawnRate || 0);
 	});
 
-	// 候補がなければゴブリン
+	// 候補がなければスライム
 	if (candidates.length === 0) {
-		candidates = enemyPool.filter(e => e.type === "goblin");
+		candidates = enemyPool.filter(e => e.type === "slime");
 	}
 
 	// それでもいなければ仮の敵を返す
@@ -86,11 +82,11 @@ export function generateEnemy(level, options = {}) {
 	base.name = base.type === "rare" ? `${base.name}（レア）` : base.name;
 	base.name += ` Lv${targetLevel}`;
 
-	base.hp += levelDiff * 6;
-	base.baseAttack += Math.floor(levelDiff * 1.3);
-	base.defense += Math.floor(levelDiff * 0.9);
-	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.4);
-	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.3);
+	base.hp += levelDiff * 8;
+	base.baseAttack += Math.floor(levelDiff * 1.5);
+	base.defense += Math.floor(levelDiff * 1.0);
+	base.baseSpeed = (base.baseSpeed || 1) + Math.floor(levelDiff * 0.6);
+	base.baseCrit = (base.baseCrit || 0) + Math.floor(levelDiff * 0.5);
 	base.baseAccuracy ??= base.accuracy ?? 100;
 	base.exp = Math.floor(5 + targetLevel ** 1.1); // 例：レベルに応じて非線形に増加
 	// 旧プロパティにコピー（互換性のため）
@@ -320,7 +316,7 @@ export function handleEnemyDefeat() {
 			const newItem = createItem(drop.item);
 			obtainEquipment(drop.type, newItem);
 			updateLog(`${drop.type === "weapon" ? "🗡️" : "🛡️"} ${drop.item.name} を手に入れた！（未装備）`, "item");
-			updateLog("📦 装備メニューから装備できます！", "item");
+			updateLog("📦 装備メニューから装備できます！", "info");
 		}
 	}
 
@@ -335,6 +331,9 @@ export function handleEnemyDefeat() {
 
 	inBattle = false;
 	currentEnemy = null;
+
+	resetTempBonuses(player); // ← ここで一時的な補正をリセット！
+
 	showEnemyImage(null);
 	playBGM("field");
 	updateStatus();

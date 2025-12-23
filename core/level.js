@@ -5,7 +5,7 @@ import { getRandomInt } from "../utils/helpers.js";
 
 // ステータス成長候補
 const growthStats = [
-	{ key: "Attack", label: "攻撃力", min: 1, max: 3 },
+	{ key: "Attack", label: "攻撃力", min: 1, max: 2 },
 	{ key: "Defense", label: "防御力", min: 1, max: 2 },
 	{ key: "Speed", label: "すばやさ", min: 1, max: 2 },
 	{ key: "Crit", label: "会心率", min: 1, max: 2 },
@@ -20,8 +20,8 @@ export function levelUp() {
 	player.nextExp = calculateNextExp(player.level);
 
 	// 固定成長
-	player.maxHp += 10;
-	player.maxMp += 5;
+	player.maxHp += 5;
+	player.maxMp += 3;
 	player.hp = player.maxHp;
 	player.mp = player.maxMp;
 
@@ -41,7 +41,7 @@ export function levelUp() {
 
 	// ログ出力
 	updateLog(`🆙 レベル ${player.level} にアップ！`, "success");
-	updateLog(`❤️ 最大HP +10 / 🔷 最大MP +5`, "info");
+	updateLog(`❤️ 最大HP +5 / 🔷 最大MP +3`, "info");
 	if (growthLog.length > 0) {
 		updateLog(growthLog.join(" / "), "success");
 	}

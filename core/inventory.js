@@ -38,8 +38,8 @@ export function addItemToInventory(item, autoEquip = false) {
 	const currentCount = getInventoryCount();
 
 	if (currentCount >= MAX_INVENTORY) {
-		updateLog(`📦 ${item.name}${typeLabel} を拾えなかった（所持数がいっぱい）`, "gray");
-		updateLog("🧹 所持品を整理してください！");
+		updateLog(`📦 ${item.name}${typeLabel} を拾えなかった（所持数がいっぱい）`, "info");
+		updateLog("🧹 所持品を整理してください！", "warning");
 		showInventoryMenu();
 		return false;
 	}
@@ -53,20 +53,20 @@ export function addItemToInventory(item, autoEquip = false) {
 	list.push(item);
 
 	const color = rarityColors[item.rarity] || "white";
-	updateLog(`📦 ${item.name}${typeLabel} を手に入れた！`, color);
+	//updateLog(`📦 ${item.name}${typeLabel} を手に入れた！`, color);
 
 	let equipped = false;
 
 	if (autoEquip && (item.type === "weapon" || item.type === "armor")) {
 		player[item.type] = item;
 		const icon = item.type === "weapon" ? "🗡️" : "🛡️";
-		updateLog(`${icon} 『${item.name}』を装備した！`, "green");
+		updateLog(`${icon} 『${item.name}』を装備した！`, "info");
 		equipped = true;
 	}
 
 	const remaining = MAX_INVENTORY - getInventoryCount();
 	if (remaining <= 2) {
-		updateLog(`⚠️ 所持品が残り ${remaining} 枠です！`);
+		updateLog(`⚠️ 所持品が残り ${remaining} 枠です！`, "warning");
 		if (remaining === 0) {
 			showInventoryMenu();
 		}
@@ -81,14 +81,8 @@ export function addItemToInventory(item, autoEquip = false) {
 
 // 自動装備を完全に禁止
 export function obtainEquipment(type, item) {
-	const color = rarityColors[item.rarity] || "white";
-
-	if (type === "weapon") {
-		player.inventory.weapons.push(item);
-	} else if (type === "armor") {
-		player.inventory.armors.push(item);
-	}
-
+	item.type = type; // 必要ならここで明示的に設定
+	return addItemToInventory(item, false);
 	updateStatus();
 }
 

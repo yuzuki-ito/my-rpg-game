@@ -99,7 +99,7 @@ function handleRandomTile() {
 	if (chance < meta.encounterRate) {
 		const enemy = generateEnemy(player.level);
 		battle(enemy);
-	} else if (chance < 0.4) {
+	} else if (chance < 0.3) {
 		findItem();
 	} else {
 		updateLog("辺りは静かだ…");

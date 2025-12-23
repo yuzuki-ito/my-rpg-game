@@ -22,13 +22,34 @@ const defaultPlayerData = {
 	magic: 5,
 
 	// ステータス（基本＋補正）
-	baseAttack: 5, attackBonus: 0,
-	baseDefense: 3, defenseBonus: 0,
-	baseSpeed: 5, speedBonus: 0,
-	baseAccuracy: 90, accuracyBonus: 0,
-	baseCrit: 5, critBonus: 0,
-	baseRecovery: 5, recoveryBonus: 0,
-	baseMagic: 5, magicBonus: 0,
+	baseAttack: 5, attackBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
+	baseDefense: 3, defenseBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
+	baseSpeed: 5, speedBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
+	baseAccuracy: 90, accuracyBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
+	baseCrit: 5, critBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
+	baseRecovery: 5, recoveryBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
+	baseMagic: 5, magicBonus: {
+		permanent: 0, // ステータス強化などで増えた分（永続）
+		temp: 0 // 戦闘中の一時的な補正（スキルなど）
+	},
 
 	// 成長・装備・スキル
 	exp: 0,

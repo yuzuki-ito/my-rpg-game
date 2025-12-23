@@ -8,7 +8,7 @@ export const enemyPool = [
 		id: "slime",
 		name: "スライム",
 		type: "slime",
-		spawnRate: 0.75,
+		spawnRate: 0.68,
 		baseLevel: 1,
 		rarity: "common",
 		hp: 20,
@@ -32,10 +32,10 @@ export const enemyPool = [
 		id: "goblin",
 		name: "ゴブリン",
 		type: "goblin",
-		spawnRate: 0.2,
+		spawnRate: 0.3,
 		baseLevel: 2,
 		rarity: "uncommon",
-		hp: 29,
+		hp: 35,
 		baseAttack: 6,
 		defense: 2,
 		baseSpeed: 3,
@@ -47,7 +47,7 @@ export const enemyPool = [
 			{
 				type: "weapon",
 				item: items.sharpSword,
-				chance: 0.4
+				chance: 0.5
 			}
 		],
 		skills: [
@@ -65,15 +65,15 @@ export const enemyPool = [
 		name: "ゴールデンスライム",
 		type: "goldenslime",
 		spawnRate: 0.02,
-		baseLevel: 5,
+		baseLevel: 1,
 		rarity: "legendary",
-		hp: 50,
-		baseAttack: 10,
-		defense: 10,
-		baseSpeed: 10,
+		hp: 75,
+		baseAttack: 5,
+		defense: 15,
+		baseSpeed: 15,
 		baseAccuracy: 95,
 		baseCrit: 10,
-		exp: 50,
+		exp: 150,
 		image: "images/goldenslime.png",
 		dropTable: [
 			{
@@ -138,8 +138,8 @@ export const enemyPool = [
 		exp: 200,
 		image: "images/awakened_dragon.png",
 		dropTable: [
-			{ type: "armor", item: items.dragonScaleCloak, chance: 0.3 },
-			{ type: "weapon", item: items.dragonFangBlade, chance: 0.1 }
+			{ type: "armor", item: items.dragonScaleCloak, chance: 0.03 },
+			{ type: "weapon", item: items.dragonFangBlade, chance: 0.01 }
 		],
 		skills: [
 			{ name: "灼熱の咆哮", effectId: "infernoRoar", chance: 0.5 }
@@ -162,6 +162,9 @@ export const enemyPool = [
 		exp: 150,
 		image: "images/feral_dragon.png",
 		dropTable: [], // 通常ドロップなし
+		skills: [
+			{ name: "獄炎", effectId: "hellfire", chance: 0.25 }
+		],
 		onDefeatId: "feralDragonDefeat"
 	}
 

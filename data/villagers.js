@@ -39,7 +39,7 @@ export const villagers = {
 				return "薬草、まだかな〜？";
 			},
 			completed: "これでおばあちゃんの薬が作れるよ！",
-			thanks: "わぁ、ありがとう！"
+			thanks: "ありがとう！"
 		}
 	},
 	forestHermit: {

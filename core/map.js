@@ -103,18 +103,20 @@ function handleRandomTile() {
 	} else if (chance < 0.3) {
 		findItem();
 	} else {
-		updateLog("辺りは静かだ…");
+		updateLog("辺りは静かだ…", "info");
 	}
 }
 
 // ====== イベント処理 ======
 export function handleVillageTile(player) {
+	console.log("handleVillageTile");
+
 	console.log("現在位置:", player.location.mapId, player.location.x, player.location.y);
 	const villager = getVillagerAt(player.location.mapId, player.location.x, player.location.y);
 	console.log("見つかった村人:", villager);
 
 	if (!villager) {
-		updateLog("誰もいないようだ。");
+		updateLog("誰もいないようだ。", "info");
 		return;
 	}
 
@@ -130,7 +132,7 @@ export function handleVillageTile(player) {
 	console.log("前提条件:", prereq, "→ 達成済み？", prereqMet);
 
 	if (!questDef) {
-		updateLog(`${villager.name}：「こんにちは。」`);
+		updateLog(`${villager.name}：「こんにちは。」`, "info");
 		return;
 	}
 
@@ -144,39 +146,70 @@ export function handleVillageTile(player) {
 				if (choice === "引き受ける") {
 					startQuest(questKey);
 				} else {
-					updateLog(`${villager.name}：「そうかい…残念じゃ。」`);
+					updateLog(`${villager.name}：「そうかい…残念じゃ。」`, "info");
 				}
 			}
 		);
 		return;
-	}
-	else if (!questState) {
-		updateLog(`${villager.name}：「今はまだ頼めないことがあるんじゃ…」`);
+	} else if (!questState) {
+		updateLog(`${villager.name}：「今はまだ頼めないことがあるんじゃ…」`, "info");
 	} else if (!questState.completed) {
 		if (questState.progress >= questDef.goal) {
-			completeQuest(questKey);
-			updateLog(`${villager.name}：「${villager.dialogue.completed}」`);
+			const buffer = [];
+
+			// クエスト達成と報酬ログをバッファに追加
+			completeQuest(questKey, buffer);
+
+			// 村人のセリフを先に追加
 			if (villager.dialogue.thanks) {
-				updateLog(`${villager.name}：「${villager.dialogue.thanks}」`);
+				buffer.unshift({ text: `${villager.name}：「${villager.dialogue.thanks}」`, type: "quest" });
+
 			}
+			if (villager.dialogue.completed) {
+				buffer.unshift({ text: `${villager.name}：「${villager.dialogue.completed}」`, type: "quest" });
+
+			}
+
+			// ログをまとめて出力
+			buffer.forEach(entry => {
+				if (typeof entry === "string") {
+					updateLog(entry); // 互換性のために文字列もOK
+				} else {
+					updateLog(entry.text, entry.type);
+				}
+			});
+
+
 		} else {
+			// クエスト進行中のセリフ
 			const msg = typeof villager.dialogue.inProgress === "function"
 				? villager.dialogue.inProgress(questState)
 				: villager.dialogue.inProgress;
-			updateLog(`${villager.name}：「${msg}」`);
+			updateLog(`${villager.name}：「${msg}」`, "quest");
 		}
-	}
-	else {
-		// 完了報酬などがあるならここで処理
-		completeQuest(questKey); // ← ここで正式に完了処理！
-		updateLog(`${villager.name}：「${villager.dialogue.completed}」`);
+	} else {
+		const buffer = [];
+		completeQuest(questKey, buffer);
+		if (villager.dialogue.completed) {
+			buffer.push({ text: `${villager.name}：「${villager.dialogue.completed}」`, type: "quest" });
+		}
+		if (villager.dialogue.thanks) {
+			buffer.push({ text: `${villager.name}：「${villager.dialogue.thanks}」`, type: "quest" });
+		}
+		buffer.forEach(entry => {
+			if (typeof entry === "string") {
+				updateLog(entry);
+			} else {
+				updateLog(entry.text, entry.type);
+			}
+		});
 	}
 
 	// 回復処理（必要なら）
 	if (player.hp < player.maxHp) {
 		player.hp = player.maxHp;
 		player.mp = player.maxMp;
-		updateLog("村で休んでHPとMPが全回復した！");
+		updateLog("村で休んでHPとMPが全回復した！", "info");
 		updateStatus();
 	}
 
@@ -185,7 +218,7 @@ export function handleVillageTile(player) {
 
 // 薬草クエストの処理
 export function handleGrassTileEvent(player) {
-	updateLog("草むらに入った…");
+	updateLog("草むらに入った…", "info");
 
 	console.log("草むらクエスト実行");
 
@@ -197,7 +230,7 @@ export function handleGrassTileEvent(player) {
 		handleGatheringTile("herbGathering", 0.5, "薬草を見つけた！", "草むらを探したが、何も見つからなかった…");
 	} else if (roll < 0.5) {
 		const enemy = generateEnemy(player.level, { forceType: "goblin" });
-		updateLog("🌿 草むらからゴブリンが飛び出してきた！");
+		updateLog("🌿 草むらからゴブリンが飛び出してきた！", "enemy");
 		battle(enemy);
 	} else {
 		updateLog("🌿 風がそよそよ…何も見つからなかった。");
@@ -252,18 +285,33 @@ export function handleBossTile(player) {
 
 	battle(boss, {
 		onDefeat: () => {
+			const buffer = [];
+
+			// 討伐ログを先に追加
+			buffer.push({ text: `🔥 ${boss.name} を討伐した！`, type: "quest" });
+
 			// クエスト進行
 			if (!quest.completed) {
 				quest.progress = 1;
+
 				if (questList.bossBattle.autoComplete) {
-					completeQuest("bossBattle");
+					completeQuest("bossBattle", buffer); // 報酬ログもこのバッファに追加される
 				}
 			}
 
-			// 特別な defeatHandler があれば呼び出す
+			// defeatHandler の呼び出し（ログを追加する場合は buffer を渡す）
 			if (boss.onDefeatId && defeatHandlers[boss.onDefeatId]) {
-				defeatHandlers[boss.onDefeatId]();
+				defeatHandlers[boss.onDefeatId](buffer);
 			}
+
+			// 最後にログをまとめて出力
+			buffer.forEach(entry => {
+				if (typeof entry === "string") {
+					updateLog(entry);
+				} else {
+					updateLog(entry.text, entry.type);
+				}
+			});
 		}
 	});
 }

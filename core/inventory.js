@@ -29,6 +29,8 @@ function getInventoryCount() {
  * @returns {boolean} - 成功したかどうか
  */
 export function addItemToInventory(item, autoEquip = false) {
+	console.log("追加しようとしているアイテム:", item);
+
 	if (!item || typeof item.name !== "string" || typeof item.type !== "string") {
 		console.warn("無効なアイテムが指定されました:", item);
 		return false;
@@ -44,6 +46,7 @@ export function addItemToInventory(item, autoEquip = false) {
 		return false;
 	}
 
+	console.log("インベントリ構造:", player.inventory);
 	const list = player.inventory[item.type + "s"];
 	if (!Array.isArray(list)) {
 		console.warn(`未対応のアイテムタイプ: ${item.type}`);
@@ -82,6 +85,7 @@ export function addItemToInventory(item, autoEquip = false) {
 // 自動装備を完全に禁止
 export function obtainEquipment(type, item) {
 	item.type = type; // 必要ならここで明示的に設定
+	console.log("装備追加:", item);
 	return addItemToInventory(item, false);
 	updateStatus();
 }

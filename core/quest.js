@@ -55,30 +55,43 @@ export function startQuest(key) {
 
 	updateLog(`🆕 クエスト開始！『${def.title}』`, "quest");
 	if (def.description) {
-		updateLog(`📖 ${def.description}`);
+		updateLog(`📖 ${def.description}`, "quest");
 	}
 
 	renderQuestList();
 }
 
 // クエスト完了処理
-export function completeQuest(key) {
+export function completeQuest(key, logBuffer = null) {
+
+	console.log("completeQuest");
+
 	const quest = player.quests[key];
 	const def = questList[key];
-
-	// 無効なクエスト or すでに完了している場合はスキップ
 	if (!quest || !def || !quest.started || quest.completed) return;
 
 	quest.completed = true;
 	quest.started = false;
 
-	updateLog(`🎉 クエスト『${def.title}』達成！`, "quest");
+	const buffer = logBuffer || [];
+
+	buffer.push({ text: `🎉 クエスト『${def.title}』達成！`, type: "quest" });
 
 	// 報酬処理
 	if (typeof def.reward === "function") {
-		def.reward();
+		def.reward(buffer);
 	} else if (typeof def.reward === "object") {
-		grantQuestReward(def);
+		grantQuestReward(def, buffer);
+	}
+
+	if (!logBuffer) {
+		buffer.forEach(entry => {
+			if (typeof entry === "string") {
+				updateLog(entry);
+			} else {
+				updateLog(entry.text, entry.type);
+			}
+		});
 	}
 
 	renderQuestList();
@@ -86,40 +99,44 @@ export function completeQuest(key) {
 }
 
 // 報酬処理を共通化
-export function grantQuestReward(quest) {
+export function grantQuestReward(quest, logBuffer = []) {
+
+	console.log("grantQuestReward");
+
 	const reward = quest.reward;
 	if (!reward) return;
 
 	if (reward.exp) {
 		player.exp += reward.exp;
-		updateLog(`📘 経験値 +${reward.exp}`, "info");
-		// 🔁 経験値が足りていればレベルアップを繰り返す
+		logBuffer.push({ text: `📘 経験値 +${reward.exp}`, type: "info" });
 		while (player.exp >= player.nextExp) {
-			levelUp();
+			levelUp(logBuffer); // レベルアップもバッファ対応に
 		}
 	}
 	if (reward.gold) {
 		player.gold = (player.gold || 0) + reward.gold;
-		updateLog(`💰 ゴールド +${reward.gold}`, "info");
+		logBuffer.push({ text: `💰 ゴールド +${reward.gold}`, type: "info" });
 	}
 	if (reward.potions) {
 		player.potions = (player.potions || 0) + reward.potions;
-		updateLog(`🧪 ポーション ×${reward.potions}`, "info");
+		logBuffer.push({ text: `🧪 ポーション ×${reward.potions}`, type: "info" });
+
 	}
 	if (reward.maxHp) {
 		player.maxHp += reward.maxHp;
-		updateLog(`💪 最大HP +${reward.maxHp}`, "info");
+		logBuffer.push({ text: `💪 最大HP +${reward.maxHp}`, type: "info" });
+
 	}
 	if (reward.items) {
 		reward.items.forEach(item => {
+			const newItem = createItem(item);
 			if (item.type === "weapon" || item.type === "armor") {
-				const newItem = createItem(item);
 				obtainEquipment(item.type, newItem);
-				updateLog(`${item.type === "weapon" ? "🗡️" : "🛡️"} ${item.name} を手に入れた！（未装備）`, "item");
+				logBuffer.push({ text: `${item.type === "weapon" ? "🗡️" : "🛡️"} ${item.name} を手に入れた！（未装備）`, type: "info" });
+
 			} else {
-				const newItem = createItem(item); // ← ここでユニークID付きに！
 				addItemToInventory(newItem);
-				updateLog(`🎁 ${item.name} ×${item.quantity || 1} を手に入れた！`, "item");
+				logBuffer.push({ text: `🎁 ${item.name} ×${item.quantity || 1} を手に入れた！`, type: "info" });
 			}
 		});
 	}
@@ -128,15 +145,19 @@ export function grantQuestReward(quest) {
 		skills.forEach(id => {
 			const skill = learnSkill(id);
 			if (skill) {
-				updateLog(`📘 スキル『${skill.name}』を習得した！`, "skill");
+				logBuffer.push({ text: `📘 スキル『${skill.name}』を習得した！`, type: "info" });
 			}
 		});
 	}
+
 	updateStatus();
 }
 
 // クエスト進行度チェック
 export function updateQuestProgress(key, amount = 1) {
+
+	console.log("updateQuestProgress");
+
 	const quest = player.quests[key];
 	const def = questList[key];
 	if (!quest || !def || quest.completed) return;
@@ -160,6 +181,9 @@ export function updateQuestProgress(key, amount = 1) {
 
 // クエスト完了処理
 export function checkQuestProgressOnKill(enemy) {
+
+	console.log("checkQuestProgressOnKill");
+
 	for (const key in player.quests) {
 		const quest = player.quests[key];
 		const def = questList[key];
@@ -173,6 +197,7 @@ export function checkQuestProgressOnKill(enemy) {
 
 // 汎用的な会話関数
 export function talkToVillagerById(id) {
+	console.log(`talkToVillagerById`);
 	const villager = villagers[id];
 	if (!villager) return;
 
@@ -218,18 +243,20 @@ export function handleGatheringTile(
 	foundMessage = "何かを見つけた！",
 	failMessage = "何も見つからなかった…"
 ) {
+	console.log("handleGatheringTile");
+
 	const quest = player.quests[questKey];
 	const def = questList[questKey];
 
 	if (!quest || !def || !quest.started || quest.completed || quest.progress >= def.goal) {
-		updateLog("ここには何もなさそうだ…");
+		updateLog("ここには何もなさそうだ…", "info");
 		return;
 	}
 
 	// 🔒 連続採集制限：同じマスでの採集を防ぐ
 	const currentPos = `${player.location.x},${player.location.y}`;
 	if (player.lastGatherPosition === currentPos) {
-		updateLog("⚠️ 同じ場所ではもう何も見つからなさそうだ…");
+		updateLog("⚠️ 同じ場所ではもう何も見つからなさそうだ…", "info");
 		return;
 	}
 	player.lastGatherPosition = currentPos;
@@ -237,8 +264,8 @@ export function handleGatheringTile(
 	// 成功判定
 	if (Math.random() < successRate) {
 		quest.progress = Math.min(quest.progress + 1, def.goal);
-		updateLog(`🌿 ${foundMessage}`);
-		updateLog(`（${def.title} ${quest.progress} / ${def.goal}）`);
+		updateLog(`🌿 ${foundMessage}`, "quest");
+		updateLog(`（${def.title} ${quest.progress} / ${def.goal}）`, "quest");
 
 		if (quest.progress >= def.goal) {
 			if (def.autoComplete) {

@@ -151,6 +151,12 @@ export function generateEnemy(level, options = {}) {
 		}
 	}
 
+	if (base.drop) {
+		console.log(`🎁 ドロップ決定: ${base.drop.item.name}`);
+	} else {
+		console.log("📭 ドロップなし");
+	}
+
 	return base;
 }
 
@@ -344,31 +350,45 @@ export function didHit(accuracy, targetSpeed) {
 
 // 撃破後処理
 export function handleEnemyDefeat() {
+	console.log(`handleEnemyDefeat`);
+
+	const buffer = [];
+
 	checkQuestProgressOnKill(currentEnemy);
 
-	updateLog(`${currentEnemy.name} をたおした！`, "success");
+	buffer.push({ text: `${currentEnemy.name} をたおした！`, type: "success" });
 	player.exp += currentEnemy.exp;
-	updateLog(`経験値 +${currentEnemy.exp}`, "success");
+	buffer.push({ text: `📘 経験値 +${currentEnemy.exp}`, type: "info" });
 
-	if (currentEnemy.drop) {
-		const roll = Math.random();
-		if (roll < currentEnemy.drop.chance) {
-			const drop = currentEnemy.drop;
-			const newItem = createItem(drop.item);
-			obtainEquipment(drop.type, newItem);
-			updateLog(`${drop.type === "weapon" ? "🗡️" : "🛡️"} ${drop.item.name} を手に入れた！（未装備）`, "item");
-			updateLog("📦 装備メニューから装備できます！", "info");
+	while (player.exp >= player.nextExp) {
+		levelUp(buffer); // ← バッファを渡す！
+	}
+
+	if (Array.isArray(currentEnemy.dropTable)) {
+		for (const dropEntry of currentEnemy.dropTable) {
+			if (Math.random() < dropEntry.chance) {
+				const newItem = createItem(dropEntry.item);
+				obtainEquipment(dropEntry.type, newItem);
+				buffer.push({
+					text: `${dropEntry.type === "weapon" ? "🗡️" : "🛡️"} ${dropEntry.item.name} を手に入れた！（未装備）`,
+					type: "item"
+				});
+				buffer.push({ text: "📦 装備メニューから装備できます！", type: "info" });
+			}
 		}
 	}
 
+	console.log("defeatHandlers前", buffer);
+
 	// 🔽 defeatHandlers の呼び出しをここに追加！
 	if (currentEnemy.onDefeatId && defeatHandlers[currentEnemy.onDefeatId]) {
-		defeatHandlers[currentEnemy.onDefeatId]();
+		defeatHandlers[currentEnemy.onDefeatId](buffer); // ← ここでバッファを渡す！
 	}
 
-	while (player.exp >= player.nextExp) {
-		levelUp();
-	}
+	console.log("defeatHandlers後", buffer);
+
+	// ログをまとめて出力！
+	buffer.forEach(entry => updateLog(entry.text, entry.type));
 
 	inBattle = false;
 	currentEnemy = null;

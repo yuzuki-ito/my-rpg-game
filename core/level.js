@@ -15,7 +15,10 @@ const growthStats = [
 ];
 
 // レベルアップ処理
-export function levelUp() {
+export function levelUp(logBuffer = []) {
+
+	console.log("レベルアップ処理実行");
+
 	player.exp -= player.nextExp;
 	player.level++;
 	player.nextExp = calculateNextExp(player.level);
@@ -40,13 +43,19 @@ export function levelUp() {
 
 	player.skills.points++;
 
-	// ログ出力
-	updateLog(`🆙 レベル ${player.level} にアップ！`, "success");
-	updateLog(`❤️ 最大HP +5 / 🔷 最大MP +3`, "info");
+	// ログ出力（バッファがあればそこに追加、なければ即時出力）
+	const log = logBuffer || [];
+	log.push({ text: `🆙 レベル ${player.level} にアップ！`, type: "info" });
+	log.push({ text: `❤️ 最大HP +5 / 🔷 最大MP +3`, type: "info" });
+
 	if (growthLog.length > 0) {
-		updateLog(growthLog.join(" / "), "success");
+		log.push({ text: `${growthLog.join(" / ")}`, type: "info" });
 	}
-	updateLog("🎁 SPを1獲得！", "success");
+	log.push({ text: `🎁 SPを1獲得！`, type: "info" });
+
+	if (logBuffer === null) {
+		log.forEach(msg => updateLog(msg.text, msg.type));
+	}
 
 	updateStatus();
 }

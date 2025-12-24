@@ -18,7 +18,7 @@ export const villagers = {
 				return "スライム退治、よろしく頼んだよ！";
 			},
 			completed: "助かったよ！また何かあったら頼むね",
-			thanks: "ありがとう！これはお礼だ！"
+			thanks: "ありがとう！"
 		}
 	},
 	herbGirl: {
@@ -57,7 +57,7 @@ export const villagers = {
 			intro: "森の奥に潜むドラゴンを倒してくれんか？",
 			inProgress: "ドラゴンはまだ生きておる…",
 			completed: "おお！助かったぞ！",
-			thanks: "これは礼じゃ。受け取ってくれ。"
+			// thanks: "これは礼じゃ。受け取ってくれ。"
 		}
 	},
 };

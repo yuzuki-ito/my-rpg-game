@@ -60,22 +60,37 @@ export function showEnemyImage(src, targetId = "enemy-img") {
 	const img = document.getElementById(targetId);
 	if (!img) return;
 
-	if (src) {
+	// すべての演出クラスを一旦削除
+	img.classList.remove("rare-glow", "legendary-glow", "boss-glow");
+
+	if (!src) {
+		img.style.display = "none";
+		img.src = "";
+		return;
+	}
+
+	// 一旦非表示にしてから画像を読み込む
+	img.style.display = "none";
+
+	// 一時的に画像をプリロード
+	const tempImg = new Image();
+	tempImg.src = src;
+
+	tempImg.onload = () => {
 		img.src = src;
 		img.style.display = "block";
 
-		// レアリティに応じた演出クラスの付け替え
-		img.classList.remove("rare-glow", "legendary-glow");
-
-		if (getCurrentEnemy()?.rarity === "legendary") {
+		const rarity = getCurrentEnemy()?.rarity;
+		if (rarity === "legendary") {
 			img.classList.add("legendary-glow");
-		} else if (getCurrentEnemy()?.rarity === "rare") {
+		} else if (rarity === "rare") {
 			img.classList.add("rare-glow");
 		}
-	} else {
-		img.style.display = "none";
-		img.classList.remove("rare-glow", "legendary-glow");
-	}
+
+		if (getCurrentEnemy()?.type === "boss") {
+			img.classList.add("boss-glow");
+		}
+	};
 }
 
 // 戦闘関連-ボタン有効化関数

@@ -76,17 +76,19 @@ export function toggleStatus() {
 		const total = getTotalStat(base, bonus, equip);
 		const suffix = stat.suffix || "";
 
-		html += `<p>${stat.label}：${total}${suffix}（基本:${base} + 補正:${formatBonus(bonus)} + 装備:${equip}）</p>`;
+		html += `
+	<div class="status-entry">
+    	<div class="label">${stat.label}：${total}${suffix}</div>
+    	<div class="detail">（基本:${base} + 補正:${formatBonus(bonus)} + 装備:${equip}）</div>
+	</div>
+`;
 	});
 
 	console.log(player.attackBonus);
 
 	html += `
-        <hr>
-        <p>武器：${player.weapon ? player.weapon.name : "なし"}</p>
-        <p>防具：${player.armor ? player.armor.name : "なし"}</p>
-		<button class="button">閉じる</button>
-    `;
+    <button class="button">閉じる</button>
+`;
 
 	screen.innerHTML = html;
 	screen.style.display = "block";

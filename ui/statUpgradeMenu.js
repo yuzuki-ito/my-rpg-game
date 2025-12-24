@@ -39,7 +39,7 @@ export function showStatUpgradeMenu() {
 			btn.onclick = () => {
 				upg.apply();
 				player.skills.points--;
-				updateLog(`🔧 ${upg.label} を強化した！`);
+				updateLog(`🔧 ${upg.label} を強化した！`, "info");
 				updateStatus();
 				showStatUpgradeMenu(); // 再描画
 			};

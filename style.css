@@ -31,6 +31,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-size: 18px; /* 全体の基本サイズを少し大きめに */
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -109,10 +110,12 @@ h1 {
 
 .map-buttons {
   display: flex;
-  justify-content: center;
-  align-items: flex-start; /* ← stretch から変更 */
-  gap: 20px;
-  min-width: 300px; /* ← メニュー展開時の最大幅に合わせて調整 */
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* メイン表示領域 */
@@ -125,8 +128,8 @@ h1 {
 
 /* ====== 敵画像 ====== */
 #enemy-image {
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -215,8 +218,25 @@ h1 {
   margin-top: 6px;
 }
 
+/* 右側：移動＋メニュー */
+#side-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 /* ====== 戦闘アクション ====== */
-#battle-actions,
+/* 戦闘ボタン（中央寄せ） */
+#battle-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
 #controls {
   position: relative; /* メニューをこの中で絶対配置するため */
   width: 135px; /* ← ボタン1列分の幅に固定 */
@@ -226,6 +246,7 @@ h1 {
 
 #battle-actions.vertical-buttons {
   align-items: flex-start;
+  margin-top: 0%;
 }
 
 #battle-actions button {
@@ -287,6 +308,22 @@ h1 {
   margin: 8px 0;
 }
 
+.status-entry {
+  margin-bottom: 6px;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.status-entry .label {
+  font-weight: bold;
+}
+
+.status-entry .detail {
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 1em;
+}
+
 /* ====== HP/MPバー ====== */
 .hp-bar,
 .mp-bar {
@@ -328,28 +365,28 @@ h1 {
 }
 
 #extra-menu {
-  position: static; /* ← absolute をやめて static に戻す */
   display: none;
   flex-direction: column;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 8px;
+  gap: 4px;
+  margin-top: 0px;
+  /* padding: 1px; */
   background-color: #fbfdff;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   animation: fadeIn 0.2s ease-in;
   width: auto;
-  max-width: 270px; /* 2列分のボタン幅程度に制限 */
+  max-width: 270px;
   box-sizing: border-box;
+  align-self: center; /* 中央寄せ */
 }
 
 #extra-menu button {
   width: 135px;
-  font-size: 14px;
-  padding: 6px 10px;
+  font-size: 15px;
+  padding: 4px 8px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background-color: #fff;
@@ -577,62 +614,91 @@ h1 {
 
 /* ====== レスポンシブ対応 ====== */
 @media (max-width: 600px) {
-  #map-log-area {
-    flex-direction: column;
-    align-items: center;
+  #game-container {
+    transform: scale(0.9);
+    transform-origin: top center;
   }
 
-  #map-and-controls {
+  #main-view,
+  #log-panel,
+  #status {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .map-display {
+    font-size: 24px;
+  }
+
+  /* ✅ 横並びに変更 */
+  .map-buttons {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 8px;
+    box-sizing: border-box;
+    gap: 8px;
+  }
+
+  #enemy-image {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+
+  #battle-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
     width: 100%;
   }
 
-  .map-buttons {
+  #battle-actions button {
+    width: 100%;
+    max-width: 100px;
+    font-size: 10px;
+  }
+
+  #side-controls {
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
+    flex-shrink: 0;
+    font-size: 10px;
   }
 
-  #controls,
-  #battle-actions {
-    align-items: center;
+  #controls {
+    width: 100%;
+    min-width: 0;
+    font-size: 10px;
+    max-width: 100px;
   }
-}
 
-/* @media (max-width: 900px) {
-  #game-container {
-    gap: 20px;
-  }
-  #log-panel {
-    width: 260px;
-    height: 360px;
-  }
-  #main-view {
-    min-width: 260px;
-    height: 260px;
-  }
-}
-
-@media (max-width: 600px) {
-  #status-and-actions {
-    flex-direction: column;
-    align-items: center;
+  #menu-button {
+    font-size: 10px;
+    margin: 0 auto;
+    width: 100%;
   }
 
   #extra-menu {
-    width: 90%;
+    width: auto;
+    max-width: 100px;
+    font-size: 10px;
   }
 
-  #log-panel {
-    width: 90%;
-    height: 260px;
+  #extra-menu button {
+    width: 100%;
+    font-size: 10px;
+    max-width: 100px;
   }
 
-  #main-view {
-    width: 90%;
-    height: auto;
-    min-height: 220px;
+  #extra-menu button:hover {
+    background-color: #0091ff;
   }
-} */
+}
 
 .legendary-glow {
   filter: drop-shadow(0 0 8px crimson);
@@ -647,6 +713,26 @@ h1 {
   to {
     transform: scale(1.08);
     filter: drop-shadow(0 0 16px orangered);
+  }
+}
+
+.boss-glow {
+  animation: bossPulse 1.5s infinite;
+  filter: drop-shadow(0 0 12px crimson);
+}
+
+@keyframes bossPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 6px crimson);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 18px orange);
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 6px crimson);
   }
 }
 
@@ -811,7 +897,7 @@ h1 {
   width: auto;
   text-align: center;
   display: inline-block;
-  margin-top: 12px;
+  margin-top: 4px;
 }
 
 .modal-footer {

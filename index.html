@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ド〇クエ風RPG</title>
+    <title>🧙‍♂️RPG</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>🧙‍♂️ ド〇クエ風RPG</h1>
+    <!-- <h1>🧙‍♂️ ド〇クエ風RPG</h1> -->
 
     <main id="game-container">
       <div id="map-log-area">
@@ -17,10 +17,12 @@
           </div>
 
           <div class="map-buttons">
+            <!-- 敵画像 -->
             <div id="enemy-image">
               <img id="enemy-img" src="" alt="敵の画像" style="display: none" />
             </div>
 
+            <!-- 戦闘ボタン（中央寄せ） -->
             <div
               id="battle-actions"
               class="vertical-buttons"
@@ -30,6 +32,20 @@
               <button data-action="skill">✨ スキル</button>
               <button data-action="potion">🧪 ポーション</button>
               <button data-action="rest">🛌 休む</button>
+            </div>
+
+            <!-- 右側：移動＋メニュー -->
+            <div id="side-controls">
+              <div id="controls" aria-label="移動操作">
+                <div class="control-row">
+                  <button data-move="up" aria-label="上に移動">↑</button>
+                </div>
+                <div class="control-row">
+                  <button data-move="left" aria-label="左に移動">←</button>
+                  <button data-move="down" aria-label="下に移動">↓</button>
+                  <button data-move="right" aria-label="右に移動">→</button>
+                </div>
+              </div>
 
               <button id="menu-button" class="button">📁 メニュー</button>
               <div id="extra-menu">
@@ -37,21 +53,10 @@
                 <button data-menu="stat-upgrade">ステータス強化</button>
                 <button data-menu="learn-skill">スキル習得</button>
                 <button data-menu="skill-tree">スキル一覧</button>
-                <button data-menu="inventory">装備変更・所持品</button>
+                <button data-menu="inventory">所持品</button>
                 <button data-menu="quest-log">クエストログ</button>
                 <button data-menu="save">セーブ</button>
                 <button data-menu="load">ロード</button>
-              </div>
-            </div>
-
-            <div id="controls" aria-label="移動操作">
-              <div class="control-row">
-                <button data-move="up" aria-label="上に移動">↑</button>
-              </div>
-              <div class="control-row">
-                <button data-move="left" aria-label="左に移動">←</button>
-                <button data-move="down" aria-label="下に移動">↓</button>
-                <button data-move="right" aria-label="右に移動">→</button>
               </div>
             </div>
           </div>
